@@ -1,0 +1,10 @@
+fit_len: 20
+check_len: 8
+fitKd_len: 20
+
+freeFallCheck_err: 1.75
+
+pre_time: 1.0
+pre_size: 5
+
+beta: 0.3
