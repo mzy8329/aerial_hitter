@@ -28,6 +28,8 @@ target_link_libraries(rviz_draw ${catkin_LIBRARIES} ${Eigen3_LIBS})
 add_library(TrajPredict src/traj_prediction/TrajPredict.h src/traj_prediction/TrajPredict.cpp)
 target_link_libraries(TrajPredict ${Eigen3_LIBS})
 
-
 add_executable(test_predict src/traj_prediction/test_predict.cpp)
 target_link_libraries(test_predict  rviz_draw TrajPredict ${catkin_LIBRARIES} ${Eigen3_LIBS})
+
+add_executable(fly_test src/test/test.cpp)
+target_link_libraries(fly_test  ${catkin_LIBRARIES})

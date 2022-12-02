@@ -1,0 +1,30 @@
+hummingbird_base:
+  joint_state_controller:
+    type: "joint_state_controller/JointStateController"
+    publish_rate: 50
+
+  rotor1_controller:
+    type: "position_controllers/JointVelocityController"
+    joint: "joint1"
+
+  rotor2_controller:
+    type: "position_controllers/JointVelocityController"
+    joint: "joint2"
+
+
+  rotor3_controller:
+    type: "position_controllers/JointVelocityController"
+    joint: "joint3"
+
+  rotor4_controller:
+    type: "position_controllers/JointVelocityController"
+    joint: "joint4"
+
+
+
+# JointPositionController
+  # gazebo_ros_control:
+  #   pid_gains:
+  #     LF_h_joint: {p: 100, i: 0.01, d: 0.1}
+  #     LF_w_joint: {p: 100, i: 0.01, d: 0.1}
+

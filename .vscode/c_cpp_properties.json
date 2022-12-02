@@ -1,0 +1,25 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/mzy/Code/workSpace/UAV_Hitter_ws/devel/include/**",
+        "/opt/ros/noetic/include/**",
+        "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_catcher/include/**",
+        "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/include/**",
+        "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/mav_msgs/include/**",
+        "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/motor_serial/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
