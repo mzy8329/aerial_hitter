@@ -48,4 +48,7 @@
       <arg name="respawn_mavros" value="$(arg respawn_mavros)"/>
   </include>
 
+  <!-- <node name="take_off" pkg="aerial_hitter" type="take_off" output="screen" /> -->
+
+
 </launch>

@@ -3,6 +3,7 @@ project(aerial_hitter)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  rospy
   geometry_msgs
   visualization_msgs
   mavros_msgs
@@ -44,5 +45,5 @@ target_link_libraries(TrajPredict ${Eigen3_LIBS})
 add_executable(test_predict src/traj_prediction/test_predict.cpp)
 target_link_libraries(test_predict  rviz_draw TrajPredict ${catkin_LIBRARIES} ${Eigen3_LIBS})
 
-add_executable(fly_test src/test/test.cpp)
-target_link_libraries(fly_test  ${catkin_LIBRARIES})
+add_executable(take_off src/test/take_off.cpp)
+target_link_libraries(take_off ${catkin_LIBRARIES})

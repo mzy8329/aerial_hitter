@@ -56,13 +56,14 @@ namespace gazebo
       this->model = _model;
       std::cerr << "\n The model's name is [" <<
         _model->GetScopedName() << "]\n";
+      this->joint = _model->GetJoint(joint_name_gz);
 
       this->pid_pos = common::PID(p_gain_pos, i_gain_pos, d_gain_pos);
       this->pid_vel = common::PID(p_gain_vel, i_gain_vel, d_gain_vel);
 
-      this->model->GetJointController()->SetPositionPID(joint_name, this->pid_pos);
-      this->model->GetJointController()->SetVelocityPID(joint_name, this->pid_vel);
-      // this->model->GetJointController()->SetPositionTarget(joint_name_gz, position);
+      this->model->GetJointController()->SetPositionPID(joint_name_gz, this->pid_pos);
+      this->model->GetJointController()->SetVelocityPID(joint_name_gz, this->pid_vel);
+      
       SetPosition(position);
         
       if (!ros::isInitialized())
@@ -91,10 +92,23 @@ namespace gazebo
       this->pos_rosSub = this->rosNode->subscribe(pos_so);
       this->vel_rosSub = this->rosNode->subscribe(vel_so);
 
+      ros::AdvertiseOptions pos_ao = ros::AdvertiseOptions::create<std_msgs::Float32>(
+            "/" + joint_name + "/pose",
+            1,
+            boost::bind(&JointPlugin::ConnectCb, this),
+            boost::bind(&JointPlugin::disConnectCb, this),
+            ros::VoidPtr(), &this->rosQueue);
+      this->pos_rosPub = this->rosNode->advertise(pos_ao);
 
       this->rosQueueThread = std::thread(std::bind(&JointPlugin::QueueThread, this));
+
+      this->updateConnection = event::Events::ConnectWorldUpdateBegin(std::bind(&JointPlugin::OnUpdate, this));
     }
-    
+    public: void OnUpdate()
+    {
+      pose.data = this->joint->Position();
+      pos_rosPub.publish(pose);
+    }
 
     public: void SetPosition(const double &_pos)
     {
@@ -107,7 +121,6 @@ namespace gazebo
       this->model->GetJointController()->SetVelocityTarget(
           joint_name_gz, _vel);
     }
-    
 
     public: void OnPosMsg(const std_msgs::Float32ConstPtr &_msg)
     {
@@ -119,6 +132,10 @@ namespace gazebo
       this->SetVeolicity(_msg->data);
     }
 
+    public: void ConnectCb(){}
+
+    public: void disConnectCb(){}
+
     private: void QueueThread()
     {
       static const double timeout = 0.01;
@@ -127,7 +144,9 @@ namespace gazebo
         this->rosQueue.callAvailable(ros::WallDuration(timeout));
       }
     }
-    
+  
+    private: event::ConnectionPtr updateConnection;
+
     private: physics::ModelPtr model;
     private: physics::JointPtr joint;
     private: common::PID pid_pos, pid_vel;
@@ -136,6 +155,8 @@ namespace gazebo
     private: ros::Subscriber pos_rosSub;
     private: ros::Subscriber vel_rosSub;
     private: ros::Publisher pos_rosPub;
+
+    private: std_msgs::Float32 pose;
 
     /// \brief A ROS callbackqueue that helps process messages
     private: ros::CallbackQueue rosQueue;
