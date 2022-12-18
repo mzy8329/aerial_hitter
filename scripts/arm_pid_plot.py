@@ -54,7 +54,7 @@ def arm0PoseCallBack(data):
         i = 0
         # print(data.data)
 
-    pub_0.publish(Float32(2))
+    pub_0.publish(Float32(0))
     pub_1.publish(Float32(y_ref))
 
 

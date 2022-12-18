@@ -1,10 +1,10 @@
-fit_len: 20
-check_len: 8
-fitKd_len: 20
+traj_prediction/fit_len: 20
+traj_prediction/check_len: 10
+traj_prediction/fitKd_len: 15
 
-freeFallCheck_err: 1.75
+traj_prediction/freeFallCheck_err: 1.0
 
-pre_time: 1.0
-pre_size: 5
+traj_prediction/pre_time: 1.0
+traj_prediction/pre_size: 20
 
-beta: 0.3
+traj_prediction/beta: 0.3

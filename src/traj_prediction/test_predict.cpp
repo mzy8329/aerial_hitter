@@ -45,9 +45,9 @@ void ballPoseCallBack(const geometry_msgs::PoseStampedConstPtr &body_msg)
 
 void param_Init(ros::NodeHandle nh)
 {
-    nh.getParam("/fit_len", fit_len);
-    nh.getParam("/check_len", check_len);
-    nh.getParam("/fitKd_len", fitKd_len);
+    nh.getParam("/traj_prediction/fit_len", fit_len);
+    nh.getParam("/traj_prediction/check_len", check_len);
+    nh.getParam("/traj_prediction/fitKd_len", fitKd_len);
 
     nh.getParam("/freeFallCheck_err", freeFallCheck_err);
     nh.getParam("/pre_time", pre_time);
