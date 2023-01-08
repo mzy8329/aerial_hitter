@@ -1,12 +1,15 @@
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <visualization_msgs/Marker.h>
+#include <nav_msgs/Odometry.h>
 
 #include "rviz_draw.h"
 #include "TrajPredict.h"
 
 
 ros::Publisher marker_pub;
+ros::Publisher hitPoint_pub;
+
 visualization_msgs::Marker mark;
 float colar_pose[4] = {1, 0, 0.8, 0.5};
 float colar_traj[4] = {1, 0.5, 0.2, 0.2};
@@ -24,7 +27,7 @@ double beta = 0.3;
 
 Eigen::Vector3d point_target = {0.5, 0.1, 0};
 
-void ballPoseCallBack(const geometry_msgs::PoseStampedConstPtr &body_msg)
+void ballPoseVrpnCallBack(const geometry_msgs::PoseStampedConstPtr &body_msg)
 {
     static int i_1 = 0;
     static int i_2 = 0;
@@ -42,6 +45,24 @@ void ballPoseCallBack(const geometry_msgs::PoseStampedConstPtr &body_msg)
     flyPre.pushNewPoint(point);
 }
 
+
+void ballPoseGazeboCallBack(const nav_msgs::OdometryConstPtr &body_msg)
+{
+    static int i_1 = 0;
+    static int i_2 = 0;
+    Eigen::Vector4d point;
+    point << body_msg->pose.pose.position.x, body_msg->pose.pose.position.y, body_msg->pose.pose.position.z, body_msg->header.stamp.toSec();
+
+    if(i_2++ > 3)
+    {
+        mark = rviz_draw::draw(point, colar_pose, "traj_view", i_1++);
+        marker_pub.publish(mark);
+
+        i_2 = 0;
+    }
+    
+    flyPre.pushNewPoint(point);
+}
 
 void param_Init(ros::NodeHandle nh)
 {
@@ -62,8 +83,11 @@ int main(int argc, char** argv)
     ros::NodeHandle nh("~");
     ros::Rate loop_rate(50);
 
-    ros::Subscriber ballPose_sub = nh.subscribe("/vrpn_client_node/RigidBody3/pose", 10, ballPoseCallBack);
-    marker_pub = nh.advertise<visualization_msgs::Marker>("/traj_view", 0);
+    ros::Subscriber ballPoseVrpn_sub = nh.subscribe("/vrpn_client_node/RigidBody3/pose", 10, ballPoseVrpnCallBack);
+    ros::Subscriber ballPoseGazebo_sub = nh.subscribe("/ball_odom", 10, ballPoseGazeboCallBack);
+
+    marker_pub = nh.advertise<visualization_msgs::Marker>("/traj_view", 1);
+    hitPoint_pub = nh.advertise<nav_msgs::Odometry>("/UAV/hitPoint", 1);
 
     param_Init(nh);
     flyPre.init(fit_len, check_len, freeFallCheck_err, beta);
@@ -88,8 +112,20 @@ int main(int argc, char** argv)
                     mark = rviz_draw::draw(flyPre.getTraj_hit(), colar_hit, "traj_hit");
                     marker_pub.publish(mark);
                     
-                    mark = rviz_draw::draw(flyPre.getPoint_hit(), colar_hitPoint, "traj_hitPoint");
+                    Eigen::VectorXd hitPoint = flyPre.getPoint_hit();
+                    mark = rviz_draw::draw(hitPoint, colar_hitPoint, "traj_hitPoint");
                     marker_pub.publish(mark);
+
+
+                    nav_msgs::Odometry hit_point;
+                    hit_point.header.stamp = ros::Time(hitPoint[6]);
+                    hit_point.pose.pose.position.x = hitPoint[0];
+                    hit_point.pose.pose.position.y = hitPoint[1];
+                    hit_point.pose.pose.position.z = hitPoint[2];
+                    hit_point.twist.twist.linear.x = hitPoint[3];
+                    hit_point.twist.twist.linear.y = hitPoint[4];
+                    hit_point.twist.twist.linear.z = hitPoint[5];
+                    hitPoint_pub.publish(hit_point);
                 }
             }
             

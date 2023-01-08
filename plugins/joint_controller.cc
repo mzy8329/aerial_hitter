@@ -133,7 +133,6 @@ namespace gazebo
     }
 
     public: void ConnectCb(){}
-
     public: void disConnectCb(){}
 
     private: void QueueThread()
@@ -146,7 +145,6 @@ namespace gazebo
     }
   
     private: event::ConnectionPtr updateConnection;
-
     private: physics::ModelPtr model;
     private: physics::JointPtr joint;
     private: common::PID pid_pos, pid_vel;

@@ -1,0 +1,8 @@
+<launch>
+
+    <node name="redball" pkg="gazebo_ros" type="spawn_model" output="screen" args="-sdf -file $(find aerial_hitter)/models/redball/model.sdf -model redball -x 3 -y 0 -z 0.05 -R 0 -P 0 -Y 0"/>
+    <node name="throw_ball" pkg="aerial_hitter" type="throw_ball" output="screen" />
+
+    <include file="$(find aerial_hitter)/launch/test_predict.launch" />
+
+</launch>

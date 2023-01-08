@@ -40,6 +40,7 @@
       <arg name="paused" value="$(arg paused)"/>
       <arg name="respawn_gazebo" value="$(arg respawn_gazebo)"/>
   </include>
+
   <!-- MAVROS -->
   <include file="$(find mavros)/launch/px4.launch">
       <!-- GCS link is provided by SITL -->
@@ -50,5 +51,4 @@
 
   <node name="take_off" pkg="aerial_hitter" type="take_off" output="screen" />
   <node name="get_gazebo_pose" pkg="aerial_hitter" type="get_gazebo_pose" output="screen" />
-
 </launch>

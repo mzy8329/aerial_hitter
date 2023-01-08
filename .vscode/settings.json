@@ -78,7 +78,8 @@
         "variant": "cpp",
         "bit": "cpp",
         "dense": "cpp",
-        "core": "cpp"
+        "core": "cpp",
+        "eigen": "cpp"
     },
     "python.analysis.extraPaths": [
         "/home/mzy/Code/workSpace/UAV_Hitter_ws/devel/lib/python3/dist-packages",
