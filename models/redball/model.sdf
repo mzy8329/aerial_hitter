@@ -130,6 +130,7 @@
         </material>
       </visual>
     </link>
+
     <link name='/odometry_link'>
       <pose frame=''>0 0 0 0 -0 0</pose>
       <inertial>
@@ -147,6 +148,7 @@
       <self_collide>0</self_collide>
       <kinematic>0</kinematic>
     </link>
+
     <joint name='/odometry_sensor1_joint' type='revolute'>
       <parent>link_0</parent>
       <child>/odometry_link</child>
@@ -180,6 +182,7 @@
         </ode>
       </physics>
     </joint>
+
     <static>0</static>
     <allow_auto_disable>1</allow_auto_disable>
     <plugin name='ball_force_controller' filename='libgazebo_ros_force.so'>
@@ -188,6 +191,7 @@
       <topicName>ball_force</topicName>
       <bodyName>link_0</bodyName>
     </plugin>
+    
     <plugin name="ground_truth" filename="libgazebo_ros_p3d.so">
       <frameName>map</frameName>
       <bodyName>link_0</bodyName>

@@ -52,11 +52,10 @@ add_library(AerialArm include/AerialArm.h src/AerialArm.cpp)
 target_link_libraries(AerialArm common_tools ${catkin_LIBRARIES})
 
 add_library(UAV include/UAV.h src/UAV.cpp)
-target_link_libraries(UAV common_tools ${catkin_LIBRARIES})
+target_link_libraries(UAV common_tools AerialArm ${catkin_LIBRARIES})
 
 
 # node
-# predict
 add_executable(test_predict src/traj_prediction/test_predict.cpp)
 target_link_libraries(test_predict  rviz_draw TrajPredict ${catkin_LIBRARIES} ${Eigen3_LIBS})
 
@@ -71,3 +70,6 @@ target_link_libraries(arm_test AerialArm ${catkin_LIBRARIES})
 
 add_executable(throw_ball src/node/throw_ball.cpp)
 target_link_libraries(throw_ball AerialArm ${catkin_LIBRARIES})
+
+add_executable(aerial_hitter_main_ctrl src/node/aerial_hitter_main_ctrl.cpp)
+target_link_libraries(aerial_hitter_main_ctrl AerialArm UAV ${catkin_LIBRARIES})

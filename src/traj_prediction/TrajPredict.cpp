@@ -201,7 +201,7 @@ bool TrajPredict::freeFallCheck()
         Eigen::MatrixXd theta_pose = (phi_pose.transpose()*phi_pose).inverse()*phi_pose.transpose()*y_pose;
         Eigen::MatrixXd theta_vel = (phi_vel.transpose()*phi_vel).inverse()*phi_vel.transpose()*y_vel;
 
-        std::cout <<theta_pose(2)<<"  "<< theta_vel(1)<< std::endl;
+        // std::cout <<theta_pose(2)<<"  "<< theta_vel(1)<< std::endl;
         if(abs(theta_pose(2)+9.8)<_freeFallCheck_err)
         {
             return true;

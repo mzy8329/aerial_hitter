@@ -16,9 +16,17 @@ ros::Publisher arm_1_pos_pub;
 
 void arm0CallBack(const std_msgs::Float32ConstPtr &msg)
 {
-    std_msgs::Float32 temp;
-    temp.data = msg->data;
-    arm_0_pos_pub.publish(temp);
+    // static ros::Time time_last = ros::Time::now();
+    // if(ros::Time::now().toSec()-time_last.toSec() > 0.01)
+    // {
+    //     time_last = ros::Time::now();
+        
+        std_msgs::Float32 temp;
+        temp.data = msg->data;
+        arm_0_pos_pub.publish(temp);
+    // }
+
+    
 }
 
 void arm1CallBack(const std_msgs::Float32ConstPtr &msg)
@@ -26,6 +34,16 @@ void arm1CallBack(const std_msgs::Float32ConstPtr &msg)
     std_msgs::Float32 temp;
     temp.data = msg->data;
     arm_1_pos_pub.publish(temp);
+
+    static ros::Time time_last = ros::Time::now();
+    if(ros::Time::now().toSec()-time_last.toSec() > 0.01)
+    {
+        time_last = ros::Time::now();
+        
+        std_msgs::Float32 temp;
+        temp.data = msg->data;
+        arm_1_pos_pub.publish(temp);
+    }
 }
 
 

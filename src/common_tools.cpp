@@ -42,33 +42,74 @@ namespace common_tools
 
     std::vector<Eigen::Vector2d> triangleProfile(Eigen::Vector2d pt_start, Eigen::Vector2d pt_end, Eigen::Vector2d pt_pass, double vel_pass)
     {
-        double t_pass_floor = floor(pt_pass[1]*CTRL_FREQ)/CTRL_FREQ;
-        double t_pass_ceil = ceil(pt_pass[1]*CTRL_FREQ)/CTRL_FREQ;
+        // double t_pass_floor = floor(pt_pass[1]*CTRL_FREQ)/CTRL_FREQ;
+        // double t_pass_ceil = ceil(pt_pass[1]*CTRL_FREQ)/CTRL_FREQ;
         double t_start_ceil = ceil(pt_start[1]*CTRL_FREQ)/CTRL_FREQ;
         double t_end_floor = floor(pt_end[1]*CTRL_FREQ)/CTRL_FREQ;
 
         std::vector<Eigen::Vector2d> traj_output;
         Eigen::Vector2d pt_temp;
 
-        double a_sp = vel_pass/(t_pass_floor - t_start_ceil);
-        double a_pe = -vel_pass/(t_end_floor - t_pass_ceil);
-
+        traj_output.clear();
         traj_output.push_back(pt_start);
         pt_temp[0] = pt_start[0], pt_temp[1] = t_start_ceil;
-        traj_output.push_back(pt_temp);        
-        for(double dt = 1/CTRL_FREQ; dt += 1/CTRL_FREQ; dt+t_start_ceil < t_pass_floor)
+        traj_output.push_back(pt_temp);      
+
+        // 第一段
+        double T1 = pt_pass[1] - t_start_ceil;
+        double V = vel_pass;
+        double X1 = pt_pass[0] - pt_start[0];
+        double a1 = ((4*X1 - 2*V*T1) + sqrt((2*V*T1-4*X1)*(2*V*T1-4*X1)+4*T1*T1*V*V))/(2*T1*T1);
+        double t1_s = (T1+V/a1)/2.0;
+        double t1_s_floor = floor(t1_s*CTRL_FREQ)/CTRL_FREQ;
+        double t1_e = (T1-V/a1)/2.0;
+        double t1_e_floor = floor(t1_e*CTRL_FREQ)/CTRL_FREQ;
+
+        for(double dt = 1/CTRL_FREQ; dt <= t1_s_floor; dt += 1/CTRL_FREQ)
         {
-            pt_temp[0] += 1/2.0*a_sp*dt*dt, pt_temp[1] += dt;
+            pt_temp[0] = pt_start[0] + 1/2.0*a1*dt*dt;
+            pt_temp[1] = t_start_ceil + dt;
+            traj_output.push_back(pt_temp);            
+        }
+        double x_temp = pt_temp[0];
+        double t_temp = pt_temp[1];
+        
+        for(double dt = 1/CTRL_FREQ; dt <= t1_e_floor; dt += 1/CTRL_FREQ)
+        {
+            pt_temp[0] = x_temp + t1_s*a1*dt - 1/2.0*a1*dt*dt;
+            pt_temp[1] = t_temp + dt;
             traj_output.push_back(pt_temp);
         }
 
-        pt_temp[0] += vel_pass/CTRL_FREQ, pt_temp[1] = t_pass_ceil;
-        traj_output.push_back(pt_temp);
-        for(double dt = 1/CTRL_FREQ; dt += 1/CTRL_FREQ; dt+t_pass_ceil < t_end_floor)
+        // 第二段
+        double T2 = t_end_floor - pt_pass[1];
+        double X2 = pt_end[0] - pt_pass[0];
+        double a2 = ((6*T2*V-4*X2)+sqrt((6*T2*V-4*X2)*(6*T2*V-4*X2) + 4*V*V*T2*T2))/(2*T2*T2);
+        double t2_s = (T2-V/a2)/2.0;
+        double t2_s_floor = floor(t2_s*CTRL_FREQ)/CTRL_FREQ;
+        double t2_e = (T2+V/a2)/2.0;
+        double t2_e_floor = floor(t2_e*CTRL_FREQ)/CTRL_FREQ; 
+
+        x_temp = pt_temp[0];
+        t_temp = pt_temp[1];
+        for(double dt = 1/CTRL_FREQ; dt <= t2_s_floor; dt += 1/CTRL_FREQ)
         {
-            pt_temp[0] += 1/2.0*a_pe*dt*dt, pt_temp[1] += dt;
+            pt_temp[0] = x_temp + V*dt + 1/2.0*a2*dt*dt;
+            pt_temp[1] = t_temp + dt;
             traj_output.push_back(pt_temp);
         }
+
+        x_temp = pt_temp[0];
+        t_temp = pt_temp[1];
+        for(double dt = 1/CTRL_FREQ; dt <= t2_s_floor; dt += 1/CTRL_FREQ)
+        {
+            pt_temp[0] = x_temp + t2_s*a2*dt - 1/2.0*a2*dt*dt;
+            pt_temp[1] = t_temp + dt;
+            traj_output.push_back(pt_temp);
+        }
+
+        pt_temp[0] = pt_end[0], pt_temp[1] = t_end_floor;
+        traj_output.push_back(pt_temp);  
         traj_output.push_back(pt_end);
 
         return traj_output;

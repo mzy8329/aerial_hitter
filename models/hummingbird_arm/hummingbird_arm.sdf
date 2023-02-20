@@ -7,12 +7,12 @@
         <pose>0 0 0 0 -0 0</pose>
         <mass>2.4</mass>
         <inertia>
-          <ixx>0.21</ixx>
+          <ixx>0.028</ixx>
           <ixy>0</ixy>
           <ixz>0</ixz>
-          <iyy>0.21</iyy>
+          <iyy>0.028</iyy>
           <iyz>0</iyz>
-          <izz>0.36</izz>
+          <izz>0.048</izz>
         </inertia>
       </inertial>
       <collision name='base_link_inertia_collision'>
@@ -506,7 +506,7 @@
       <timeConstantUp>0.0125</timeConstantUp>
       <timeConstantDown>0.025</timeConstantDown>
       <maxRotVelocity>1100</maxRotVelocity>
-      <motorConstant>12.84e-06</motorConstant>
+      <motorConstant>15.84e-06</motorConstant>
       <momentConstant>0.06</momentConstant>
       <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
       <motorNumber>0</motorNumber>
@@ -523,7 +523,7 @@
       <timeConstantUp>0.0125</timeConstantUp>
       <timeConstantDown>0.025</timeConstantDown>
       <maxRotVelocity>1100</maxRotVelocity>
-      <motorConstant>12.84e-06</motorConstant>
+      <motorConstant>15.84e-06</motorConstant>
       <momentConstant>0.06</momentConstant>
       <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
       <motorNumber>1</motorNumber>
@@ -540,7 +540,7 @@
       <timeConstantUp>0.0125</timeConstantUp>
       <timeConstantDown>0.025</timeConstantDown>
       <maxRotVelocity>1100</maxRotVelocity>
-      <motorConstant>12.84e-06</motorConstant>
+      <motorConstant>15.84e-06</motorConstant>
       <momentConstant>0.06</momentConstant>
       <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
       <motorNumber>2</motorNumber>
@@ -557,7 +557,7 @@
       <timeConstantUp>0.0125</timeConstantUp>
       <timeConstantDown>0.025</timeConstantDown>
       <maxRotVelocity>1100</maxRotVelocity>
-      <motorConstant>12.84e-06</motorConstant>
+      <motorConstant>15.84e-06</motorConstant>
       <momentConstant>0.06</momentConstant>
       <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
       <motorNumber>3</motorNumber>

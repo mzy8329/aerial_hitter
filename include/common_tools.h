@@ -1,3 +1,6 @@
+#ifndef COMMON_TOOLS_H
+#define COMMON_TOOLS_H
+
 #include <eigen3/Eigen/Eigen>
 #include <geometry_msgs/Quaternion.h>
 
@@ -15,3 +18,5 @@ namespace common_tools
     std::vector<Eigen::Vector2d> triangleProfile(Eigen::Vector2d pt_start, Eigen::Vector2d pt_end, Eigen::Vector2d pt_pass, double vel_pass);
    
 } // namespace common_tools
+
+#endif

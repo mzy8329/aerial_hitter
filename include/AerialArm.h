@@ -11,10 +11,10 @@
 
 #define SIGN(x) (x>0 ? 1:(x<0 ? -1:0))
 
-#define ArmNum 2
 
-double Arm_POS_SET[2] = {0.5, -1.5};
-double Arm_VEL_SET[2] = {0.3, 0.4};
+double Arm_POS_SET[2] = {0.3, -1.8};
+double Arm_VEL_SET[2] = {1.2, 1.2};
+
 
 
 class AerialArm
@@ -32,19 +32,22 @@ public:
     void arm1PosCallback(const std_msgs::Float32ConstPtr &msg);
 
 
-    bool GetSet();
+    bool GetSet(double pos_0_s = 0, double pos_1_s = 0);
     bool toZero();
 
-    bool ctrlArm(double pos_0, double pos_1);
+    void ctrlArm(double pos_0, double pos_1);
     
-    double _arm_current_pos[ArmNum];
-    double _arm_target_pos[ArmNum];
-    double _arm_target_vel[ArmNum];
+    double _arm_current_pos[2];
+    double _arm_target_pos[2];
+    double _arm_target_vel[2];
+
+    double _hit_start_pos[2];
+    double _hit_end_pos[2];
 
 private:
     ros::NodeHandle _nh;
-    ros::Subscriber _arm_pos_sub[ArmNum];
-    ros::Publisher _arm_pos_pub[ArmNum];
+    ros::Subscriber _arm_pos_sub[2];
+    ros::Publisher _arm_pos_pub[2];
 
     double _ctrl_rate;
 

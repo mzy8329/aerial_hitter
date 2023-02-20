@@ -15,6 +15,8 @@ int main(int argc, char** argv)
     sleep(0.1);
     arm.GetSet();
 
+    sleep(3.0);
+
     arm.toZero();
 
 

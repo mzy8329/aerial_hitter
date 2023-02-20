@@ -49,6 +49,10 @@
       <arg name="respawn_mavros" value="$(arg respawn_mavros)"/>
   </include>
 
-  <node name="take_off" pkg="aerial_hitter" type="take_off" output="screen" />
+  <!-- <node name="take_off" pkg="aerial_hitter" type="take_off" output="screen" /> -->
   <node name="get_gazebo_pose" pkg="aerial_hitter" type="get_gazebo_pose" output="screen" />
+
+  <node name="aerial_hitter_main_ctrl" pkg="aerial_hitter" type="aerial_hitter_main_ctrl" output="screen" />
+  
+
 </launch>
