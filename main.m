@@ -7,13 +7,13 @@ p0_offset = -2.6374;
 p1_offset = 0;
 
 ball_r = 0.1;
-ball_origin_pose = [4; 0; ball_r/2.0];
-vel_throw = [-3.2; 0; 5.6];
+ball_origin_pose = [3; 0; ball_r/2.0];
+vel_throw = [-3.2; 0; 4.6];
 
-pt_target = [4; 1; 0];
+pt_target = [1; 0.4; 0];
 beta = 0.0;
 
-XLim = [-1, 4.5];
+XLim = [-1, 3.5];
 YLim = [-0.5, 2];
 ZLim = [0, 2.0];
 
@@ -25,7 +25,7 @@ t_predict_last = 0;
 t_predict_gap = 0.1;
 
 vel_UAV = 1.0;
-vel_y_UAV = 0.1;
+vel_y_UAV = 0.5;
 
 ball_pose_predict = [0;0;0];
 
@@ -70,6 +70,7 @@ ball.updata_draw(ball_origin_pose, [0; 0; 0], ball.acc_0, 0, 0);
 
 rectangle('Position',[pt_target(1)-0.5,pt_target(2)-0.5,2*0.5,2*0.5],'Curvature',[1,1],'EdgeColor','m')
 
+pause
 pause(5)
 
 LineObjects = findall(figure(1),'type','line');
@@ -158,18 +159,18 @@ while 1
             aerialHitter.pose(4) = aerialHitter.pose(4) + vel_y_UAV*dt;
         end
 
-        if(length(arm_0_hit_pos_list) < 1)
-            break
-        end
-        if t-arm_0_hit_pos_list(3,1) < dt
-            aerialHitter.pos_arm_0 = arm_0_hit_pos_list(1,1)-aerialHitter.pos_arm_0_offset;
-            aerialHitter.vel_arm_0 = arm_0_hit_pos_list(2,1);
-            arm_0_hit_pos_list(:,1) = [];
+        if(length(arm_0_hit_pos_list) > 1)
+        
+            if t-arm_0_hit_pos_list(3,1) < dt
+                aerialHitter.pos_arm_0 = arm_0_hit_pos_list(1,1)-aerialHitter.pos_arm_0_offset;
+                aerialHitter.vel_arm_0 = arm_0_hit_pos_list(2,1);
+                arm_0_hit_pos_list(:,1) = [];
 
 
-            aerialHitter.pos_arm_1 = arm_1_hit_pos_list(1,1)-aerialHitter.pos_arm_1_offset;
-            aerialHitter.vel_arm_1 = arm_1_hit_pos_list(2,1);
-            arm_1_hit_pos_list(:,1) = [];
+                aerialHitter.pos_arm_1 = arm_1_hit_pos_list(1,1)-aerialHitter.pos_arm_1_offset;
+                aerialHitter.vel_arm_1 = arm_1_hit_pos_list(2,1);
+                arm_1_hit_pos_list(:,1) = [];
+            end
         end
         
         % 判断是否击中
