@@ -21,7 +21,7 @@ classdef Ball
         end
 
         
-        function updata_draw(obj,pose_0, vel_0, acc_0, t, t_0)
+        function obj = updata_draw(obj,pose_0, vel_0, acc_0, t, t_0)
             obj.t_0 = t_0;
             obj.vel_0 = vel_0;
             obj.acc_0 = acc_0;
