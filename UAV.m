@@ -62,7 +62,7 @@ classdef UAV
         end
      
         
-        function obj = updata_draw(obj)
+        function obj = updata(obj)
             obj.pt_base_link = obj.pose(1:3);
             y = obj.pose(4);            
 
@@ -71,26 +71,10 @@ classdef UAV
 
             obj.pt_arm_0_end = obj.pt_base_link + obj.l_arm_0*[cos(obj.pos_arm_0+obj.pos_arm_0_offset)*cos(y); cos(obj.pos_arm_0+obj.pos_arm_0_offset)*sin(y); sin(obj.pos_arm_0+obj.pos_arm_0_offset)];
             obj.pt_arm_1_end = obj.pt_arm_0_end + obj.l_arm_1*[cos(obj.pos_arm_1+obj.pos_arm_1_offset)*cos(y); cos(obj.pos_arm_1+obj.pos_arm_1_offset)*sin(y); sin(obj.pos_arm_1+obj.pos_arm_1_offset)];
-        
-
-            axis equal;
-            set(gca, "XLim", obj.XLim);
-            set(gca, "YLim", obj.YLim);
-            set(gca, "ZLim", obj.ZLim);
-            hold on;
-            grid on;
-
-            line_base = [obj.pt_base_link_0, obj.pt_base_link_1];
-            line_arm_0 = [obj.pt_base_link, obj.pt_arm_0_end];
-            line_arm_1 = [obj.pt_arm_0_end, obj.pt_arm_1_end];
-
-            line(line_base(1,:), line_base(2,:), line_base(3,:), 'Color', 'r', 'LineWidth', 2, 'LineStyle', '-');
-            line(line_arm_0(1,:), line_arm_0(2,:), line_arm_0(3,:), 'Color', 'g', 'LineWidth', 1, 'LineStyle', '-');
-            line(line_arm_1(1,:), line_arm_1(2,:), line_arm_1(3,:), 'Color', 'b', 'LineWidth', 1.5, 'LineStyle', '-');
-
+    
         end
 
-        function set_draw(obj, uav_pos, arm_pos)
+        function obj = set(obj, uav_pos, arm_pos)
             obj.pt_base_link = uav_pos(1:3);
             y = uav_pos(4);            
 
@@ -99,9 +83,11 @@ classdef UAV
 
             obj.pt_arm_0_end = obj.pt_base_link + obj.l_arm_0*[cos(arm_pos(1)+obj.pos_arm_0_offset)*cos(y); cos(arm_pos(1)+obj.pos_arm_0_offset)*sin(y); sin(arm_pos(1)+obj.pos_arm_0_offset)];
             obj.pt_arm_1_end = obj.pt_arm_0_end + obj.l_arm_1*[cos(arm_pos(2)+obj.pos_arm_1_offset)*cos(y); cos(arm_pos(2)+obj.pos_arm_1_offset)*sin(y); sin(arm_pos(2)+obj.pos_arm_1_offset)];
-        
 
-            axis equal;
+        end
+
+        function draw1(obj)
+                
             set(gca, "XLim", obj.XLim);
             set(gca, "YLim", obj.YLim);
             set(gca, "ZLim", obj.ZLim);
@@ -112,11 +98,28 @@ classdef UAV
             line_arm_0 = [obj.pt_base_link, obj.pt_arm_0_end];
             line_arm_1 = [obj.pt_arm_0_end, obj.pt_arm_1_end];
 
-            line(line_base(1,:), line_base(2,:), line_base(3,:), 'Color', 'r', 'LineWidth', 1.5, 'LineStyle', '-.');
-            line(line_arm_0(1,:), line_arm_0(2,:), line_arm_0(3,:), 'Color', 'g', 'LineWidth', 1.5, 'LineStyle', '-.');
-            line(line_arm_1(1,:), line_arm_1(2,:), line_arm_1(3,:), 'Color', 'b', 'LineWidth', 1.0, 'LineStyle', '-.');
-
+            line(line_base(1,:), line_base(2,:), line_base(3,:), 'Color', 'r', 'LineWidth', 3);
+            line(line_arm_0(1,:), line_arm_0(2,:), line_arm_0(3,:), 'Color', 'g', 'LineWidth', 3);
+            line(line_arm_1(1,:), line_arm_1(2,:), line_arm_1(3,:), 'Color', 'b', 'LineWidth', 3);
         end
+
+        function draw2(obj)
+                
+            set(gca, "XLim", obj.XLim);
+            set(gca, "YLim", obj.YLim);
+            set(gca, "ZLim", obj.ZLim);
+            hold on;
+            grid on;
+
+            line_base = [obj.pt_base_link_0, obj.pt_base_link_1];
+            line_arm_0 = [obj.pt_base_link, obj.pt_arm_0_end];
+            line_arm_1 = [obj.pt_arm_0_end, obj.pt_arm_1_end];
+
+            line(line_base(1,:), line_base(2,:), line_base(3,:), 'Color', 'r', 'LineWidth', 3, 'LineStyle', '-.');
+            line(line_arm_0(1,:), line_arm_0(2,:), line_arm_0(3,:), 'Color', 'g', 'LineWidth', 3, 'LineStyle', '-.');
+            line(line_arm_1(1,:), line_arm_1(2,:), line_arm_1(3,:), 'Color', 'b', 'LineWidth', 3, 'LineStyle', '-.');
+        end
+
 
     end
 end

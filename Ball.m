@@ -21,7 +21,7 @@ classdef Ball
         end
 
         
-        function obj = updata_draw(obj,pose_0, vel_0, acc_0, t, t_0)
+        function obj = updata(obj,pose_0, vel_0, acc_0, t, t_0)
             obj.t_0 = t_0;
             obj.vel_0 = vel_0;
             obj.acc_0 = acc_0;
@@ -31,8 +31,11 @@ classdef Ball
                 obj.pose(3) = obj.r;
             end
 
-            plot3(obj.pose(1), obj.pose(2), obj.pose(3), 'ro')
+            
+        end
 
+        function draw(obj)
+            plot3(obj.pose(1), obj.pose(2), obj.pose(3), 'ro', 'LineWidth', 3)
         end
 
     end
