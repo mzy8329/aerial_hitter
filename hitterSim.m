@@ -236,10 +236,13 @@ function pt_placed = hitterSim(pt_tar, vel_uav, vel_yaw, Beta, Dt, ifdraw)
                     aerialHitter.pos_arm_1 = arm_1_hit_pos_list(1,1)-aerialHitter.pos_arm_1_offset;
                     aerialHitter.vel_arm_1 = arm_1_hit_pos_list(2,1);
                     arm_1_hit_pos_list(:,1) = [];
+<<<<<<< HEAD
 
                     if aerialHitter.pos_arm_1 > 0
                         aerialHitter.pos_arm_1 = 0;
                     end
+=======
+>>>>>>> 4a8fcc9960571167aede700e88c309a6cec9cf79
                 end
             end
             
