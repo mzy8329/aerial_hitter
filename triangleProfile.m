@@ -9,24 +9,38 @@ function traj_out = triangleProfile(pt_s, pt_p, pt_e, dt)
     pt_temp = [pt_s(1); pt_s(2); t_s_ceil];
     traj_out = [pt_s, pt_temp];
 
+
+    mode = 0;
     T1 = pt_p(3) - t_s_ceil;
     V1 = vel_p - vel_s;
     X1 = pt_p(1) - pt_s(1);
     A = T1^2; B = -4*(X1-vel_s*T1-1/2.0*T1*V1); C = -V1^2;
-    a1 = (-B + sqrt(B^2 - 4*A*C))/(2*A)
-    t1_s = (T1+V1/a1)/2.0
-    t1_s_floor = floor(t1_s/dt)*dt;
-    t1_e = (T1-V1/a1)/2.0
-    t1_e_floor = floor(t1_e/dt)*dt;
+    a1 = (-B + sqrt(B^2 - 4*A*C))/(2*A);
 
-    if t1_s < 0 || t1_e < 0
-        a1 = (-B - sqrt(B^2 - 4*A*C))/(2*A)
-        t1_s = (T1+V1/a1)/2.0
-        t1_s_floor = floor(t1_s/dt)*dt;
-        t1_e = (T1-V1/a1)/2.0
-        t1_e_floor = floor(t1_e/dt)*dt;
+    if a1 < 0
+        a1 = (-B - sqrt(B^2 - 4*A*C))/(2*A);
+        mode = 1;
     end
 
+    t1_s = (T1+V1/a1)/2.0;
+    t1_s_floor = floor(t1_s/dt)*dt;
+    t1_e = (T1-V1/a1)/2.0;
+    t1_e_floor = floor(t1_e/dt)*dt;
+
+    
+    if t1_s < 0 || t1_e < 0
+        if mode ==0
+            a1 = (-B - sqrt(B^2 - 4*A*C))/(2*A);
+        else
+            a1 = (-B + sqrt(B^2 - 4*A*C))/(2*A);
+        end
+
+        t1_s = (T1+V1/a1)/2.0;
+        t1_s_floor = floor(t1_s/dt)*dt;
+        t1_e = (T1-V1/a1)/2.0;
+        t1_e_floor = floor(t1_e/dt)*dt;
+    end
+    
 
     x_temp = pt_temp(1); v_temp = pt_temp(2); t_temp = pt_temp(3);
     for t = dt:dt:t1_s_floor
@@ -45,21 +59,34 @@ function traj_out = triangleProfile(pt_s, pt_p, pt_e, dt)
     end
     
     %第二段
+    mode = 0;
     T2 = t_e_floor - pt_p(3);
     X2 = pt_e(1) - pt_p(1);
     V2 = vel_e - vel_p;
     A = T2^2; B = -4*(X2-vel_p*T2-1/2.0*T2*V2); C = -V2^2;
     a2 = (-B + sqrt(B^2 - 4*A*C))/(2*A);
+
+    if a2 < 0
+        a2 = (-B - sqrt(B^2 - 4*A*C))/(2*A);
+        mode = 1;
+    end
+
+
     t2_s = (T2+V2/a2)/2.0;
     t2_s_floor = floor(t2_s/dt)*dt;
     t2_e = (T2-V2/a2)/2.0;
     t2_e_floor = floor(t2_e/dt)*dt;
 
+
     if t2_s < 0 || t2_e < 0
-        a2 = (-B - sqrt(B^2 - 4*A*C))/(2*A)
-        t2_s = (T2+V2/a2)/2.0
+        if mode ==0
+            a2 = (-B - sqrt(B^2 - 4*A*C))/(2*A);
+        else
+            a2 = (-B + sqrt(B^2 - 4*A*C))/(2*A);
+        end
+        t2_s = (T2+V2/a2)/2.0;
         t2_s_floor = floor(t2_s/dt)*dt;
-        t2_e = (T2-V2/a2)/2.0
+        t2_e = (T2-V2/a2)/2.0;
         t2_e_floor = floor(t2_e/dt)*dt;
     end
 
@@ -78,7 +105,6 @@ function traj_out = triangleProfile(pt_s, pt_p, pt_e, dt)
         pt_temp(2) = vel_p + t2_s_floor*a2 - a2*t;
         pt_temp(3) = t_temp + t;
         traj_out = [traj_out, pt_temp];
-    
     end
 
 end 
