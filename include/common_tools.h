@@ -4,7 +4,8 @@
 #include <eigen3/Eigen/Eigen>
 #include <geometry_msgs/Quaternion.h>
 
-#define CTRL_FREQ 100.0
+#include <iostream>
+#include <fstream>
 
 
 namespace common_tools
@@ -15,8 +16,10 @@ namespace common_tools
     Eigen::Vector3d orientation2Euler(geometry_msgs::Quaternion q);
     geometry_msgs::Quaternion Euler2orientation(Eigen::Vector3d Euler);
 
-    std::vector<Eigen::Vector2d> triangleProfile(Eigen::Vector2d pt_start, Eigen::Vector2d pt_end, Eigen::Vector2d pt_pass, double vel_pass);
+    std::vector<Eigen::Vector3d> triangleProfile(Eigen::Vector3d pt_start, Eigen::Vector3d pt_end, Eigen::Vector3d pt_pass, double dt);
    
+    bool writeFile(char* name, std::vector<Eigen::Vector3d> data);
+
 } // namespace common_tools
 
 #endif

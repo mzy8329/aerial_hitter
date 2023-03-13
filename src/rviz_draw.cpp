@@ -5,7 +5,7 @@
 namespace rviz_draw
 {
     visualization_msgs::Marker draw(
-        std::vector<Eigen::Vector3f> points,
+        std::vector<Eigen::Vector3d> points,
         float* colar,
         const char* frameId, 
         int id,     

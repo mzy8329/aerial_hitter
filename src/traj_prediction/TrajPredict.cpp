@@ -123,10 +123,10 @@ bool TrajPredict::predictTraj_hit(int index_trajPredict, Eigen::Vector3d point_t
     double Y = point_target[1] - _traj_predict[index_trajPredict][1];
     double Z = point_target[2] - _traj_predict[index_trajPredict][2];
     
-    double B_temp = Z + sqrt(X*X+Y*Y);
+    double B_temp = -Z + sqrt(X*X+Y*Y);
     if(B_temp < 0) return false;
     double t = sqrt(2.0/9.8*B_temp);
-    double v_x = X/t, v_y = Y/t, v_z = (Z+1/2.0*9.8*t*t)/t;
+    double v_x = X/t, v_y = Y/t, v_z = (-Z+1/2.0*9.8*t*t)/t;
 
     _point_hit[0] = _traj_predict[index_trajPredict][0];
     _point_hit[1] = _traj_predict[index_trajPredict][1];
@@ -140,6 +140,7 @@ bool TrajPredict::predictTraj_hit(int index_trajPredict, Eigen::Vector3d point_t
     };
     Eigen::Vector3d vel_after = {v_x, v_y, v_z};
     Eigen::Vector3d vel_hit = collisionModel(vel_before, vel_after);
+    // std::cout << vel_hit << std::endl;
     _point_hit[3] = vel_hit[0];
     _point_hit[4] = vel_hit[1];
     _point_hit[5] = vel_hit[2];
@@ -155,6 +156,7 @@ bool TrajPredict::predictTraj_hit(int index_trajPredict, Eigen::Vector3d point_t
         _traj_hit_predict.push_back(pt);
     }
     return true;
+
 }
 
 Eigen::Vector3d TrajPredict::collisionModel(Eigen::Vector3d vel_before, Eigen::Vector3d vel_after)
@@ -163,7 +165,6 @@ Eigen::Vector3d TrajPredict::collisionModel(Eigen::Vector3d vel_before, Eigen::V
     double Vb = vel_before.transpose()*n - 1/(1+_beta)*(vel_before - vel_after).norm();
     return Vb*n;
 }
-
 
 
 

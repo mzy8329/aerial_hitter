@@ -5,13 +5,14 @@
 #include "UAV.h"
 
 
+#define CTRL_FREQ 100.0
 
 double arm_length[2] = {0.106, 0.190};
-double arm_offset[2] = {3.6426, 0};
+double arm_offset[2] = {-2.6374, 0};
 
-double arm_start[2] = {4.0, -1.8};
-double arm_end[2] = {6.0, -0.2};
-double arm_time_pass[2] = {0.5, 0.5};
+double arm_start[2] = {-2.3, -1.8};  
+double arm_end[2] = {-0.3, 0};
+double arm_time_pass[2] = {0.05, 0.05};
 
 Eigen::Vector3d axis2link = {-0.00732, 0, -0.4};
 Eigen::Vector3d arm2base = {0, 0, -0.012};

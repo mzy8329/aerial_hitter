@@ -40,80 +40,114 @@ namespace common_tools
         return Q;
     }
 
-    std::vector<Eigen::Vector2d> triangleProfile(Eigen::Vector2d pt_start, Eigen::Vector2d pt_end, Eigen::Vector2d pt_pass, double vel_pass)
+    std::vector<Eigen::Vector3d> triangleProfile(Eigen::Vector3d pt_start, Eigen::Vector3d pt_end, Eigen::Vector3d pt_pass, double dt)
     {
-        // double t_pass_floor = floor(pt_pass[1]*CTRL_FREQ)/CTRL_FREQ;
-        // double t_pass_ceil = ceil(pt_pass[1]*CTRL_FREQ)/CTRL_FREQ;
-        double t_start_ceil = ceil(pt_start[1]*CTRL_FREQ)/CTRL_FREQ;
-        double t_end_floor = floor(pt_end[1]*CTRL_FREQ)/CTRL_FREQ;
+        double t_start_ceil = ceil(pt_start[2]/dt)*dt;
+        double t_end_floor = floor(pt_end[2]/dt)*dt;
 
-        std::vector<Eigen::Vector2d> traj_output;
-        Eigen::Vector2d pt_temp;
+        std::vector<Eigen::Vector3d> traj_output;
+        Eigen::Vector3d pt_temp;
 
         traj_output.clear();
         traj_output.push_back(pt_start);
-        pt_temp[0] = pt_start[0], pt_temp[1] = t_start_ceil;
-        traj_output.push_back(pt_temp);      
+        pt_temp[0] = pt_start[0], pt_temp[1] = pt_start[1], pt_temp[2] = t_start_ceil;
+        traj_output.push_back(pt_temp);   
+
+        double x_temp, v_temp, t_temp;   
 
         // 第一段
-        double T1 = pt_pass[1] - t_start_ceil;
-        double V = vel_pass;
+        double T1 = pt_pass[2] - t_start_ceil;
+        double V1 = pt_pass[1] - pt_start[1];
         double X1 = pt_pass[0] - pt_start[0];
-        double a1 = ((4*X1 - 2*V*T1) + sqrt((2*V*T1-4*X1)*(2*V*T1-4*X1)+4*T1*T1*V*V))/(2*T1*T1);
-        double t1_s = (T1+V/a1)/2.0;
-        double t1_s_floor = floor(t1_s*CTRL_FREQ)/CTRL_FREQ;
-        double t1_e = (T1-V/a1)/2.0;
-        double t1_e_floor = floor(t1_e*CTRL_FREQ)/CTRL_FREQ;
+        double A1 = T1*T1; double B1 = -4*(X1-pt_start[1]*T1-1/2.0*T1*V1); double C1 = -V1*V1;
+        double a1 = (-B1 + sqrt(B1*B1 - 4*A1*C1))/(2*A1);
+        double t1_s = (T1+V1/a1)/2.0;
+        double t1_s_floor = floor(t1_s/dt)*dt;
+        double t1_e = (T1-V1/a1)/2.0;
+        double t1_e_floor = floor(t1_e/dt)*dt;
 
-        for(double dt = 1/CTRL_FREQ; dt <= t1_s_floor; dt += 1/CTRL_FREQ)
+        if(t1_s<0 || t1_e < 0)
         {
-            pt_temp[0] = pt_start[0] + 1/2.0*a1*dt*dt;
-            pt_temp[1] = t_start_ceil + dt;
+            a1 = (-B1 - sqrt(B1*B1 - 4*A1*C1))/(2*A1);
+            t1_s = (T1+V1/a1)/2.0;
+            t1_s_floor = floor(t1_s/dt)*dt;
+            t1_e = (T1-V1/a1)/2.0;
+            t1_e_floor = floor(t1_e/dt)*dt;
+        }
+
+        for(double t = dt; t <= t1_s_floor; t += dt)
+        {
+            pt_temp[0] = pt_start[0] + pt_start[1]*t + 1/2.0*a1*t*t;
+            pt_temp[1] = pt_start[1] + a1*t;
+            pt_temp[2] = t_start_ceil + t;
             traj_output.push_back(pt_temp);            
         }
-        double x_temp = pt_temp[0];
-        double t_temp = pt_temp[1];
+        x_temp = pt_temp[0], v_temp = pt_temp[1], t_temp = pt_temp[2];
         
-        for(double dt = 1/CTRL_FREQ; dt <= t1_e_floor; dt += 1/CTRL_FREQ)
+        for(double t = dt; t <= t1_e_floor; t += dt)
         {
-            pt_temp[0] = x_temp + t1_s*a1*dt - 1/2.0*a1*dt*dt;
-            pt_temp[1] = t_temp + dt;
+            pt_temp[0] = x_temp + v_temp*t - 1/2.0*a1*dt*dt;
+            pt_temp[1] = v_temp - a1*t;
+            pt_temp[2] = t_temp + t;
             traj_output.push_back(pt_temp);
         }
 
         // 第二段
         double T2 = t_end_floor - pt_pass[1];
+        double V2 = pt_end[1] - pt_pass[1];
         double X2 = pt_end[0] - pt_pass[0];
-        double a2 = ((6*T2*V-4*X2)+sqrt((6*T2*V-4*X2)*(6*T2*V-4*X2) + 4*V*V*T2*T2))/(2*T2*T2);
-        double t2_s = (T2-V/a2)/2.0;
-        double t2_s_floor = floor(t2_s*CTRL_FREQ)/CTRL_FREQ;
-        double t2_e = (T2+V/a2)/2.0;
-        double t2_e_floor = floor(t2_e*CTRL_FREQ)/CTRL_FREQ; 
+        double A2 = T2*T2; double B2 = -4*(X2-pt_pass[1]*T2-1/2.0*T2*V2); double C2 = -V2*V2;
+        double a2 = (-B1 + sqrt(B1*B1 - 4*A1*C1))/(2*A1);
+        double t2_s = (T2+V2/a2)/2.0;
+        double t2_s_floor = floor(t2_s/dt)*dt;
+        double t2_e = (T2-V2/a2)/2.0;
+        double t2_e_floor = floor(t2_e/dt)*dt;
 
-        x_temp = pt_temp[0];
-        t_temp = pt_temp[1];
-        for(double dt = 1/CTRL_FREQ; dt <= t2_s_floor; dt += 1/CTRL_FREQ)
+        if(t2_s<0 || t2_e < 0)
         {
-            pt_temp[0] = x_temp + V*dt + 1/2.0*a2*dt*dt;
-            pt_temp[1] = t_temp + dt;
+            a2 = (-B1 - sqrt(B1*B1 - 4*A1*C1))/(2*A1);
+            t2_s = (T2+V2/a2)/2.0;
+            t2_s_floor = floor(t2_s/dt)*dt;
+            t2_e = (T2-V2/a2)/2.0;
+            t2_e_floor = floor(t2_e/dt)*dt;
+        }
+
+
+        x_temp = pt_temp[0], v_temp = pt_temp[1], t_temp = pt_temp[2];
+        for(double t = dt; t <= t2_s_floor; t += dt)
+        {
+            pt_temp[0] = x_temp + v_temp*t + 1/2.0*a2*t*t;
+            pt_temp[1] = v_temp + a2*t;
+            pt_temp[2] = t_temp + t;
             traj_output.push_back(pt_temp);
         }
 
-        x_temp = pt_temp[0];
-        t_temp = pt_temp[1];
-        for(double dt = 1/CTRL_FREQ; dt <= t2_s_floor; dt += 1/CTRL_FREQ)
+
+        x_temp = pt_temp[0], v_temp = pt_temp[1], t_temp = pt_temp[2];
+        for(double t = dt; t <= t2_s_floor; t += dt)
         {
-            pt_temp[0] = x_temp + t2_s*a2*dt - 1/2.0*a2*dt*dt;
-            pt_temp[1] = t_temp + dt;
+            pt_temp[0] = x_temp + v_temp*t - 1/2.0*a2*t*t;
+            pt_temp[1] = v_temp - a2*t;
+            pt_temp[2] = t_temp + t;
             traj_output.push_back(pt_temp);
         }
-
-        pt_temp[0] = pt_end[0], pt_temp[1] = t_end_floor;
-        traj_output.push_back(pt_temp);  
-        traj_output.push_back(pt_end);
-
         return traj_output;
     }
 
+    bool writeFile(char* name, std::vector<Eigen::Vector3d> data)
+    {//写入文件
+		std::ofstream outfile;               			//创建文件
+
+        outfile.open(name,  std::ios::binary);
+
+		for(int i = 0; i<data.size(); i++)
+		{
+			outfile << data[i][0] << "  "
+					<< data[i][1] << "  "
+					<< data[i][2] << "  ";
+			outfile << std::endl;//保存初始的时间、六个关节角度
+		}
+		outfile.close();	
+	}
 
 } // namespace common_tools

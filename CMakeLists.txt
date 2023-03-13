@@ -39,7 +39,7 @@ target_link_libraries(joint_controller ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
 
 
 # lib
-add_library(rviz_draw include/rviz_draw.h src/traj_prediction/rviz_draw.cpp)
+add_library(rviz_draw include/rviz_draw.h src/rviz_draw.cpp)
 target_link_libraries(rviz_draw ${catkin_LIBRARIES} ${Eigen3_LIBS})
 
 add_library(TrajPredict src/traj_prediction/TrajPredict.h src/traj_prediction/TrajPredict.cpp)

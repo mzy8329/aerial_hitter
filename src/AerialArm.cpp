@@ -10,11 +10,9 @@ AerialArm::AerialArm(ros::NodeHandle nh)
 
     _arm_pos_sub[0] = _nh.subscribe("/AerialArm/arm_0_joint/pose", 10, &AerialArm::arm0PosCallback, this);
     _arm_pos_sub[1] = _nh.subscribe("/AerialArm/arm_1_joint/pose", 10, &AerialArm::arm1PosCallback, this);
-
-    _ctrl_rate = CTRL_FREQ;
 }
 
-void AerialArm::init(ros::NodeHandle nh)
+void AerialArm::init(ros::NodeHandle nh, double ctrl_freq)
 {
     _nh = nh;    
 
@@ -24,7 +22,7 @@ void AerialArm::init(ros::NodeHandle nh)
     _arm_pos_sub[0] = _nh.subscribe("/AerialArm/arm_0_joint/pose", 10, &AerialArm::arm0PosCallback, this);
     _arm_pos_sub[1] = _nh.subscribe("/AerialArm/arm_1_joint/pose", 10, &AerialArm::arm1PosCallback, this);
 
-    _ctrl_rate = CTRL_FREQ;
+    _ctrl_rate = ctrl_freq;
 }
 
 bool AerialArm::GetSet(double pos_0_s, double pos_1_s)

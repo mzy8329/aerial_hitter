@@ -24,7 +24,7 @@ public:
     AerialArm(ros::NodeHandle nh);
     ~AerialArm(){};
 
-    void init(ros::NodeHandle nh);
+    void init(ros::NodeHandle nh, double ctrl_freq);
 
     bool setArmParam(double arm_0_length, double arm_1_length, double arm_0_offset, double arm_1_offset, Eigen::Vector3d axis2link);
 

@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/PoseArray.h>
 #include <visualization_msgs/Marker.h>
 #include <nav_msgs/Odometry.h>
 
@@ -25,7 +26,7 @@ float pre_time = 1.0;
 int pre_size = 10;
 double beta = 0.3;
 
-Eigen::Vector3d point_target = {0.5, 0.1, 0};
+Eigen::Vector3d point_target = {1.0, 0.5, 0};
 
 void ballPoseVrpnCallBack(const geometry_msgs::PoseStampedConstPtr &body_msg)
 {
@@ -44,7 +45,6 @@ void ballPoseVrpnCallBack(const geometry_msgs::PoseStampedConstPtr &body_msg)
     
     flyPre.pushNewPoint(point);
 }
-
 
 void ballPoseGazeboCallBack(const nav_msgs::OdometryConstPtr &body_msg)
 {
@@ -87,7 +87,7 @@ int main(int argc, char** argv)
     ros::Subscriber ballPoseGazebo_sub = nh.subscribe("/ball_odom", 10, ballPoseGazeboCallBack);
 
     marker_pub = nh.advertise<visualization_msgs::Marker>("/traj_view", 1);
-    hitPoint_pub = nh.advertise<nav_msgs::Odometry>("/UAV/hitPoint", 1);
+    hitPoint_pub = nh.advertise<geometry_msgs::PoseArray>("/UAV/hitPoint", 1);
 
     param_Init(nh);
     flyPre.init(fit_len, check_len, freeFallCheck_err, beta);
@@ -125,7 +125,18 @@ int main(int argc, char** argv)
                     hit_point.twist.twist.linear.x = hitPoint[3];
                     hit_point.twist.twist.linear.y = hitPoint[4];
                     hit_point.twist.twist.linear.z = hitPoint[5];
-                    hitPoint_pub.publish(hit_point);
+                    
+                    if(isnan(hitPoint[3]) || isnan(hitPoint[4]) || isnan(hitPoint[5])
+                    || hitPoint[2] < 0.1
+                    )
+                    {
+                        ;;
+                    }
+                    else
+                    {
+                        hitPoint_pub.publish(hit_point);
+                    }
+                    
                 }
             }
             
