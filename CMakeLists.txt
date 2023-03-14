@@ -42,7 +42,7 @@ target_link_libraries(joint_controller ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
 add_library(rviz_draw include/rviz_draw.h src/rviz_draw.cpp)
 target_link_libraries(rviz_draw ${catkin_LIBRARIES} ${Eigen3_LIBS})
 
-add_library(TrajPredict src/traj_prediction/TrajPredict.h src/traj_prediction/TrajPredict.cpp)
+add_library(TrajPredict include/TrajPredict.h src/TrajPredict.cpp)
 target_link_libraries(TrajPredict ${Eigen3_LIBS})
 
 add_library(common_tools include/common_tools.h src/common_tools.cpp)
@@ -52,7 +52,7 @@ add_library(AerialArm include/AerialArm.h src/AerialArm.cpp)
 target_link_libraries(AerialArm common_tools ${catkin_LIBRARIES})
 
 add_library(UAV include/UAV.h src/UAV.cpp)
-target_link_libraries(UAV common_tools AerialArm ${catkin_LIBRARIES})
+target_link_libraries(UAV common_tools AerialArm TrajPredict rviz_draw ${catkin_LIBRARIES})
 
 
 # node
@@ -66,7 +66,7 @@ add_executable(get_gazebo_pose src/node/get_gazebo_pose.cpp)
 target_link_libraries(get_gazebo_pose ${catkin_LIBRARIES})
 
 add_executable(arm_test src/node/arm_test.cpp)
-target_link_libraries(arm_test AerialArm ${catkin_LIBRARIES})
+target_link_libraries(arm_test AerialArm ${catkin_LIBRARIES} ${Eigen3_LIBS})
 
 add_executable(throw_ball src/node/throw_ball.cpp)
 target_link_libraries(throw_ball AerialArm ${catkin_LIBRARIES})

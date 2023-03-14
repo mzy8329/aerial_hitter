@@ -49,7 +49,6 @@ namespace common_tools
         Eigen::Vector3d pt_temp;
 
         traj_output.clear();
-        traj_output.push_back(pt_start);
         pt_temp[0] = pt_start[0], pt_temp[1] = pt_start[1], pt_temp[2] = t_start_ceil;
         traj_output.push_back(pt_temp);   
 
@@ -133,6 +132,46 @@ namespace common_tools
         }
         return traj_output;
     }
+
+    std::vector<Eigen::Vector3d> triangleProfile(Eigen::Vector3d pt_start, Eigen::Vector3d pt_end, double dt)
+    {
+        double t_start_ceil = ceil(pt_start[2]/dt)*dt;
+        double t_end_floor = floor(pt_end[2]/dt)*dt;
+
+        std::vector<Eigen::Vector3d> traj_output;
+        Eigen::Vector3d pt_temp;
+
+        traj_output.clear();
+        pt_temp[0] = pt_start[0], pt_temp[1] = pt_start[1], pt_temp[2] = t_start_ceil;
+        traj_output.push_back(pt_temp);   
+
+        double x_temp, v_temp, t_temp;   
+
+        double T = t_end_floor - t_start_ceil;
+        double X = pt_end[0] - pt_start[0];
+        double a1 = (4*X-3*pt_start[1]*T)/(T*T);
+        double a2 = (4*X-pt_start[1]*T)/(T*T);
+
+        for(double t = dt; t <= T/2.0; t += dt)
+        {
+            pt_temp[0] = pt_start[0] + pt_start[1]*t + 1/2.0*a1*t*t;
+            pt_temp[1] = pt_start[1] + a1*t;
+            pt_temp[2] = t_start_ceil + t;
+            traj_output.push_back(pt_temp);            
+        }
+        x_temp = pt_temp[0], v_temp = pt_temp[1], t_temp = pt_temp[2];
+        
+        for(double t = dt; t <= T/2.0; t += dt)
+        {
+            pt_temp[0] = x_temp + v_temp*t - 1/2.0*a1*dt*dt;
+            pt_temp[1] = v_temp - a1*t;
+            pt_temp[2] = t_temp + t;
+            traj_output.push_back(pt_temp);
+        }
+
+        return traj_output;
+    }
+
 
     bool writeFile(char* name, std::vector<Eigen::Vector3d> data)
     {//写入文件

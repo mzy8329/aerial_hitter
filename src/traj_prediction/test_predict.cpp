@@ -70,10 +70,10 @@ void param_Init(ros::NodeHandle nh)
     nh.getParam("/traj_prediction/check_len", check_len);
     nh.getParam("/traj_prediction/fitKd_len", fitKd_len);
 
-    nh.getParam("/freeFallCheck_err", freeFallCheck_err);
-    nh.getParam("/pre_time", pre_time);
-    nh.getParam("/pre_size", pre_size);
-    nh.getParam("/beta", beta);
+    nh.getParam("/traj_prediction/freeFallCheck_err", freeFallCheck_err);
+    nh.getParam("/traj_prediction/pre_time", pre_time);
+    nh.getParam("/traj_prediction/pre_size", pre_size);
+    nh.getParam("/traj_prediction/beta", beta);
 }
 
 

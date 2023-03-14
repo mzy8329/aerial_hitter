@@ -17,7 +17,10 @@ namespace common_tools
     geometry_msgs::Quaternion Euler2orientation(Eigen::Vector3d Euler);
 
     std::vector<Eigen::Vector3d> triangleProfile(Eigen::Vector3d pt_start, Eigen::Vector3d pt_end, Eigen::Vector3d pt_pass, double dt);
-   
+    std::vector<Eigen::Vector3d> triangleProfile(Eigen::Vector3d pt_start, Eigen::Vector3d pt_end, double dt);
+
+
+
     bool writeFile(char* name, std::vector<Eigen::Vector3d> data);
 
 } // namespace common_tools

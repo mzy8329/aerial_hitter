@@ -123,7 +123,9 @@ bool TrajPredict::predictTraj_hit(int index_trajPredict, Eigen::Vector3d point_t
     double Y = point_target[1] - _traj_predict[index_trajPredict][1];
     double Z = point_target[2] - _traj_predict[index_trajPredict][2];
     
-    double B_temp = -Z + sqrt(X*X+Y*Y);
+    double angle = 3.14/180.0*(3.4665*Z*Z*Z+14.4455*Z*Z+23.5606*Z+41.1703);
+
+    double B_temp = -Z + sqrt(X*X+Y*Y)*tan(angle);
     if(B_temp < 0) return false;
     double t = sqrt(2.0/9.8*B_temp);
     double v_x = X/t, v_y = Y/t, v_z = (-Z+1/2.0*9.8*t*t)/t;
@@ -158,6 +160,7 @@ bool TrajPredict::predictTraj_hit(int index_trajPredict, Eigen::Vector3d point_t
     return true;
 
 }
+
 
 Eigen::Vector3d TrajPredict::collisionModel(Eigen::Vector3d vel_before, Eigen::Vector3d vel_after)
 {

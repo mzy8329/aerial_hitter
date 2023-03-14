@@ -20,9 +20,9 @@ namespace gazebo
   class JointPlugin : public ModelPlugin
   {
     public: JointPlugin() {}
-    public: virtual void Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
+    public: virtual void Load(physics::ModelPtr _mode, sdf::ElementPtr _sdf)
     {
-      if (_model->GetJointCount() == 0)
+      if (_mode->GetJointCount() == 0)
       {
         std::cerr << "Invalid joint count, position plugin not loaded\n";
         return;
@@ -32,8 +32,8 @@ namespace gazebo
 
       if (_sdf->HasElement("jointname"))
         joint_name_ori = _sdf->Get<std::string>("jointname");
-        joint_name_gz = _model->GetScopedName() + "::" + joint_name_ori;
-        joint_name = _model->GetScopedName() + "/"  + joint_name_ori; 
+        joint_name_gz = _mode->GetScopedName() + "::" + joint_name_ori;
+        joint_name = _mode->GetScopedName() + "/"  + joint_name_ori; 
         boost::replace_all(joint_name, "::", "/");
 
         std::cerr << "We find the joint [" <<
@@ -53,10 +53,10 @@ namespace gazebo
       if (_sdf->HasElement("d_gain_vel"))
         d_gain_vel = _sdf->Get<double>("d_gain_vel");
 
-      this->model = _model;
+      this->model = _mode;
       std::cerr << "\n The model's name is [" <<
-        _model->GetScopedName() << "]\n";
-      this->joint = _model->GetJoint(joint_name_gz);
+        _mode->GetScopedName() << "]\n";
+      this->joint = _mode->GetJoint(joint_name_gz);
 
       this->pid_pos = common::PID(p_gain_pos, i_gain_pos, d_gain_pos);
       this->pid_vel = common::PID(p_gain_vel, i_gain_vel, d_gain_vel);

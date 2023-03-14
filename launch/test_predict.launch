@@ -2,6 +2,6 @@
     <!-- <node pkg="rosbag" type="play" name="play" args="$(find aerial_hitter)/ros_bags/traj_prediction/bag3.bag"/> -->
 
     <node pkg="aerial_hitter" type="test_predict" name="test_predict" output="screen"/>
-    <rosparam command="load" file="$(find aerial_hitter)/param/traj_prediction/param.yaml" />
+    
     
 </launch>

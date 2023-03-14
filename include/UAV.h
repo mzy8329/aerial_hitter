@@ -5,6 +5,7 @@
 #include <std_msgs/Float32.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <trajectory_msgs/MultiDOFJointTrajectory.h>
+#include <trajectory_msgs/MultiDOFJointTrajectoryPoint.h>
 #include <mavros_msgs/State.h>
 #include <mavros_msgs/CommandBool.h>
 #include <mavros_msgs/SetMode.h>
@@ -16,12 +17,15 @@
 
 #include "common_tools.h"
 #include "AerialArm.h"
+#include "TrajPredict.h"
+#include "rviz_draw.h"
 
 
 typedef enum{
     wait,
     take_off,
     hover,
+    move,
     hit,
     land,
     manual,
@@ -31,10 +35,10 @@ typedef enum{
 class UAV
 {
 public:
-    UAV(ros::NodeHandle nh, double ctrl_period = 50, double UAV_vel = 1.0);
+    UAV(ros::NodeHandle nh, double ctrl_period = 50, double UAV_vel = 2.0);
     ~UAV(){;;}
 
-    UAV_model_e _model;
+    UAV_model_e _mode;
 
     void state_Callback(const mavros_msgs::StateConstPtr &msg);
     void currentPose_Callback(const geometry_msgs::PoseStampedConstPtr &msg);
@@ -45,8 +49,11 @@ public:
 
 
     void setArmParam(double* arm_length, double* arm_offset, Eigen::Vector3d axis2link, Eigen::Vector3d arm2base, double* arm_start, double* arm_end, double* arm_time_pass);
+    void initParam(ros::NodeHandle nh);
+    
     void takeOff();
     void Hover();
+    void Move();
     void Hit();
 
     void printData();
@@ -68,7 +75,6 @@ private:
     ros::Subscriber _ballPoseVrpn_sub;
     ros::Subscriber _ballPoseGazebo_sub;
 
-
     ros::Publisher _local_pose_pub;
     ros::Publisher _local_traj_pub;
     ros::Publisher _rviz_marker_pub;
@@ -79,9 +85,10 @@ private:
 
     mavros_msgs::State _current_state;
     trajectory_msgs::MultiDOFJointTrajectory _targetPose;
+    std::vector<Eigen::Vector3d> _targetTraj_xyz[3];
     geometry_msgs::PoseStamped _targetPoint;
     geometry_msgs::PoseStamped _currentPose;
-    trajectory_msgs::MultiDOFJointTrajectory _plannedTraj;
+
 
     double _ctrl_rate;
 
@@ -91,18 +98,44 @@ private:
     double _arm_start[2];
     double _arm_end[2];
     double _arm_time_pass[2];
-
     double _arm_hit_pos[2];
     std::vector<Eigen::Vector3d> _arm_pos_target[2];
+    bool _isSet;
 
     Eigen::Vector3d _axis2link;
     Eigen::Vector3d _arm2base;
 
     Eigen::VectorXd _base_pose;
     Eigen::VectorXd _hit_pose;
+    Eigen::Vector4d _hit_pose_temp;
 
     double _UAV_Vel;
     bool _get_hit_point;
+
+    struct
+    {
+        int fit_len;
+        int check_len;
+        int fitKd_len;
+        float freeFallCheck_err;
+        float pre_time;
+        int pre_size;
+        double beta;
+
+        TrajPredict trajPredict;
+    }_Predict;
+
+    Eigen::Vector3d _point_target = {1.0, 0.5, 0};
+
+    struct
+    {
+        visualization_msgs::Marker mark;
+        
+        float colar_pose[4] = {1, 0, 0.8, 0.5};
+        float colar_traj[4] = {1, 0.5, 0.2, 0.2};
+        float colar_hit[4] = {1, 0.2, 0.2, 0.6};
+        float colar_hitPoint[4] = {0.8, 1.0, 0.2, 0.6};
+    }_Rviz;
 
 };
 

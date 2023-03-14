@@ -1,6 +1,8 @@
 #include "AerialArm.h"
 #include <ros/ros.h>
 
+#include <eigen3/Eigen/Eigen>
+#include <iostream>
 
 
 
@@ -18,6 +20,7 @@ int main(int argc, char** argv)
     sleep(3.0);
 
     arm.toZero();
+
 
 
     return 0;
