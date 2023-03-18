@@ -6,7 +6,6 @@ UAV::UAV(ros::NodeHandle nh, double ctrl_freq, double UAV_vel)
     _nh = nh;
     _ctrl_rate = ctrl_freq;
     _UAV_Vel = UAV_vel;
-    _get_hit_point = false;
 
     _mode = wait;
 
@@ -15,7 +14,6 @@ UAV::UAV(ros::NodeHandle nh, double ctrl_freq, double UAV_vel)
     _state_sub = nh.subscribe("/mavros/state", 10, &UAV::state_Callback, this);
     _target_pose_sub = nh.subscribe("/UAV/target_pose", 1, &UAV::targetPose_Callback, this);
     _current_pose_sub = nh.subscribe("/UAV/pose", 1, &UAV::currentPose_Callback, this);
-    _hitPoint_sub = nh.subscribe("/UAV/hitPoint", 1, &UAV::hitPoint_Callback, this);
     _ballPoseVrpn_sub = nh.subscribe("/vrpn_client_node/RigidBody3/pose", 10, &UAV::ballPoseVrpnCallBack, this);
     _ballPoseGazebo_sub = nh.subscribe("/ball_odom", 10, &UAV::ballPoseGazeboCallBack, this);
 
@@ -29,7 +27,7 @@ UAV::UAV(ros::NodeHandle nh, double ctrl_freq, double UAV_vel)
 
     _pose_hover.pose.position.x = 0;
     _pose_hover.pose.position.y = 0;
-    _pose_hover.pose.position.z = 2;
+    _pose_hover.pose.position.z = 1;
 
     _base_pose.resize(7,1);
     _hit_pose.resize(7,1);    
@@ -56,66 +54,6 @@ void UAV::targetPose_Callback(const trajectory_msgs::MultiDOFJointTrajectoryCons
     _targetPose = *msg;
 }
 
-void UAV::hitPoint_Callback(const nav_msgs::OdometryConstPtr &msg)
-{
-    if(_get_hit_point) return;
-
-    _hit_pose[0] = msg->pose.pose.position.x;
-    _hit_pose[1] = msg->pose.pose.position.y;
-    _hit_pose[2] = msg->pose.pose.position.z;
-    _hit_pose[3] = msg->twist.twist.linear.x;
-    _hit_pose[4] = msg->twist.twist.linear.y;
-    _hit_pose[5] = msg->twist.twist.linear.z;
-    _hit_pose[6] = msg->header.stamp.toSec();
-
-    hit2base();
-    
-    double time_temp = ros::Time::now().toSec();
-
-    Eigen::Vector3d pt_hit = {_base_pose[0], _base_pose[1], _base_pose[2]};
-    Eigen::Vector3d pt_base = {_currentPose.pose.position.x, _currentPose.pose.position.y, _currentPose.pose.position.z};   
-    
-    double p = sqrt(_hit_pose[3]*_hit_pose[3] + _hit_pose[4]*_hit_pose[4]);
-    double q = _hit_pose[5];
-    double a = -(_arm_length[0]*sin(_arm_hit_pos[0])+_arm_length[1]*sin(_arm_hit_pos[1]));
-    double b = -_arm_length[1]*sin(_arm_hit_pos[1]);
-    double c = (_arm_length[0]*cos(_arm_hit_pos[0])+_arm_length[1]*cos(_arm_hit_pos[1]));
-    double d = _arm_length[1]*cos(_arm_hit_pos[1]);
-
-    double temp = (a*q/c-p)/(a*d/c-b);
-    double vel_arm[2] = {(p-b*temp)/a, temp};
-
-    for(int i = 0; i < 2; i++)
-    {
-        double time = ros::Time::now().toSec();
-        double time_start = _hit_pose[6]-_arm_time_pass[0]-_arm_time_pass[1];
-        if(time > _hit_pose[6]-_arm_time_pass[0]-_arm_time_pass[1])
-        {
-            time_start = time;
-        }
-
-        Eigen::Vector3d P_s = {_arm_pos_target[i][0][0],  _arm_pos_target[i][0][1], time_start};
-        Eigen::Vector3d P_p = {_arm_hit_pos[i], vel_arm[i], _hit_pose[6]-_arm_time_pass[1]};
-        Eigen::Vector3d P_e = {_arm_end[i], 0,_hit_pose[6]};
-        _arm_pos_target[i] =  common_tools::triangleProfile(P_s, P_e, P_p, 0.01);
-    }
-
-
-    if((pt_hit-pt_base).norm() < (_hit_pose[6]-time_temp)*_UAV_Vel)
-    {
-        _get_hit_point = true;
-
-        char name_1[] = "./data/arm0.txt";
-        char name_2[] = "./data/arm1.txt";
-
-        common_tools::writeFile(name_1, _arm_pos_target[0]);
-        common_tools::writeFile(name_2, _arm_pos_target[1]);
-    }
-
-
-    _mode = hit;
-}
- 
 void UAV::ballPoseVrpnCallBack(const geometry_msgs::PoseStampedConstPtr &body_msg)
 {
     static int i_1 = 0;
@@ -185,6 +123,8 @@ void UAV::setArmParam(double* arm_length, double* arm_offset, Eigen::Vector3d ax
         _arm_pos_target[i].push_back(pt_temp);
     }
 }
+
+
 
 void UAV::takeOff()
 {
@@ -279,7 +219,8 @@ void UAV::Move()
                 k = i;
             }
         }
-        _hit_pose_temp = traj_predict[k];
+        _hit_pose_temp = checkSafeBox(traj_predict[k]);
+        
 
         // 规划无人机轨迹
 
@@ -318,11 +259,12 @@ void UAV::Move()
 
             _targetTraj_xyz[i] = common_tools::triangleProfile(pt_s, pt_e, 1.0/_ctrl_rate);
         }
-
+        _Rviz.mark = rviz_draw::draw(_hit_pose_temp, _Rviz.colar_hit, "hit_pose_temp");
+        _rviz_marker_pub.publish(_Rviz.mark);
 
         // 检验临时击球点是否可选取为击球点
         Eigen::Vector3d hit_pose_temp = {_hit_pose_temp[0], _hit_pose_temp[1], _hit_pose_temp[2]};
-        if((hit_pose_temp-pose_now).norm() < (_hit_pose_temp[3]-ros::Time::now().toSec())*_UAV_Vel
+        if((hit_pose_temp-pose_now).norm() < 10*(_hit_pose_temp[3]-ros::Time::now().toSec())*_UAV_Vel
         && _Predict.trajPredict.predictTraj_hit(k, _point_target))
         {
             _Rviz.mark = rviz_draw::draw(_Predict.trajPredict.getTraj_hit(), _Rviz.colar_hit, "traj_hit");
@@ -341,6 +283,7 @@ void UAV::Move()
             else
             {
                 _hit_pose = hitPoint;
+                hit2base();
 
                 double time_temp = ros::Time::now().toSec();
                 Eigen::Vector3d pt_hit = {_hit_pose[0], _hit_pose[1], _hit_pose[2]};
@@ -356,31 +299,37 @@ void UAV::Move()
                 double temp = (a*q/c-p)/(a*d/c-b);
                 double vel_arm[2] = {(p-b*temp)/a, temp};
 
+                double t_1 = (_arm_hit_pos[1]-_arm_pos_target[1][0][0])/std::max(_arm_pos_target[1][0][1], vel_arm[1]);
+                double t_2 = (_arm_end[1]-_arm_hit_pos[1])/vel_arm[1];
+
+                std::cout<<t_1 << "  " <<t_2 << std::endl;
                 for(int i = 0; i < 2; i++)
                 {
-                    double time = ros::Time::now().toSec();
-                    double time_start = _hit_pose[6]-_arm_time_pass[0]-_arm_time_pass[1];
-                    if(time > _hit_pose[6]-_arm_time_pass[0]-_arm_time_pass[1])
-                    {
-                        time_start = time;
-                    }
+                    // double time = ros::Time::now().toSec();
+                    // double time_start = _hit_pose[6]-t_1-t_2;
+                    // if(time > time_start)
+                    // {
+                    //     time_start = time;
+                    //     t_1 = (_hit_pose[6]-time_start)/(t_1+t_2)*t_1;
+                    //     t_2 = (_hit_pose[6]-time_start)/(t_1+t_2)*t_2;
+                    // }
+                    // std::cout<<time_start<<"  "<<_hit_pose[6]<<std::endl;
 
-                    Eigen::Vector3d P_s = {_arm_pos_target[i][0][0],  _arm_pos_target[i][0][1], time_start};
-                    Eigen::Vector3d P_p = {_arm_hit_pos[i], vel_arm[i], _hit_pose[6]-_arm_time_pass[1]};
-                    Eigen::Vector3d P_e = {_arm_end[i], 0,_hit_pose[6]};
+                    Eigen::Vector3d P_s = {_arm_pos_target[i][0][0],  _arm_pos_target[i][0][1], _hit_pose[6]-t_2-t_1};
+                    Eigen::Vector3d P_p = {_arm_hit_pos[i], vel_arm[i], _hit_pose[6]-t_2};
+                    Eigen::Vector3d P_e = {_arm_end[i], 0, _hit_pose[6]};
                     _arm_pos_target[i] =  common_tools::triangleProfile(P_s, P_e, P_p, 1.0/_ctrl_rate);
                 }   
 
+                
+                char name_1[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/arm0.txt";
+                char name_2[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/arm1.txt";
+
+                common_tools::writeFile(name_1, _arm_pos_target[0]);
+                common_tools::writeFile(name_2, _arm_pos_target[1]);
+
                 _mode = hit;
-            }
-
-
-
-            char name_1[] = "./data/arm0.txt";
-            char name_2[] = "./data/arm1.txt";
-
-            common_tools::writeFile(name_1, _arm_pos_target[0]);
-            common_tools::writeFile(name_2, _arm_pos_target[1]);
+            }            
         }
 
 
@@ -403,39 +352,87 @@ void UAV::Move()
         temp_vel.linear.y = _targetTraj_xyz[1][0][1];
         temp_vel.linear.z = _targetTraj_xyz[2][0][1];
 
+        temp_point.transforms.clear();
+        temp_point.velocities.clear();
         temp_point.transforms.push_back(temp_pos);
         temp_point.velocities.push_back(temp_vel);
         temp_point.time_from_start = ros::Duration(1.0/_ctrl_rate);
+        _targetPose.points.clear();
         _targetPose.points.push_back(temp_point);
 
         _local_traj_pub.publish(_targetPose);
 
 
-        _targetTraj_xyz[0].erase(_targetTraj_xyz[0].begin());
-        _targetTraj_xyz[1].erase(_targetTraj_xyz[1].begin());
-        _targetTraj_xyz[2].erase(_targetTraj_xyz[2].begin());
+        // char name_1[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/targetTraj_x.txt";
+        // char name_2[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/targetTraj_y.txt";
+        // char name_3[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/targetTraj_z.txt";
+
+        // common_tools::writeFile(name_1, _targetTraj_xyz[0]);
+        // common_tools::writeFile(name_2, _targetTraj_xyz[1]);
+        // common_tools::writeFile(name_3, _targetTraj_xyz[2]);
+
+
+        if(_targetTraj_xyz[0].size()>1)
+        {
+            _targetTraj_xyz[0].erase(_targetTraj_xyz[0].begin());
+            _targetTraj_xyz[1].erase(_targetTraj_xyz[1].begin());
+            _targetTraj_xyz[2].erase(_targetTraj_xyz[2].begin());
+        }
+
+        if(ros::Time::now().toSec()-_hit_pose_temp[3]>2)
+        {
+            _mode = hover;
+        }
     }
 
 }
 
 void UAV::Hit()
 {    
-    _targetPoint.header.stamp = ros::Time::now();
-    _targetPoint.pose.position.x = _base_pose[0];
-    _targetPoint.pose.position.y = _base_pose[1];
-    _targetPoint.pose.position.z = _base_pose[2];
-    // ROS_INFO("x:%f, y:%f, z:%f", _base_pose[0], _base_pose[1], _base_pose[2]);
-    
-    Eigen::Vector3d rpy = {_base_pose[3], _base_pose[4], _base_pose[5]};
-    _targetPoint.pose.orientation = common_tools::Euler2orientation(rpy);
-    _local_pose_pub.publish(_targetPoint);
+    if(!_targetTraj_xyz[0].empty())
+    {
+        _targetPose.header.stamp = ros::Time::now();
+
+        trajectory_msgs::MultiDOFJointTrajectoryPoint temp_point;
+        geometry_msgs::Transform temp_pos;
+        geometry_msgs::Twist temp_vel;
+
+
+        temp_pos.translation.x = _targetTraj_xyz[0][0][0];
+        temp_pos.translation.y = _targetTraj_xyz[1][0][0];
+        temp_pos.translation.z = _targetTraj_xyz[2][0][0];
+
+        temp_vel.linear.x = _targetTraj_xyz[0][0][1];
+        temp_vel.linear.y = _targetTraj_xyz[1][0][1];
+        temp_vel.linear.z = _targetTraj_xyz[2][0][1];
+
+        temp_point.transforms.clear();
+        temp_point.velocities.clear();
+        temp_point.transforms.push_back(temp_pos);
+        temp_point.velocities.push_back(temp_vel);
+        temp_point.time_from_start = ros::Duration(1.0/_ctrl_rate);
+        _targetPose.points.clear();
+        _targetPose.points.push_back(temp_point);
+
+        _local_traj_pub.publish(_targetPose);
+
+
+        if(_targetTraj_xyz[0].size()>1)
+        {
+            _targetTraj_xyz[0].erase(_targetTraj_xyz[0].begin());
+            _targetTraj_xyz[1].erase(_targetTraj_xyz[1].begin());
+            _targetTraj_xyz[2].erase(_targetTraj_xyz[2].begin());
+        }
+        
+    }
+
 
     static bool hit_start = false;
     double time_now = ros::Time::now().toSec();
     // std::cout<< time_now <<"  " <<_arm_pos_target[0][0][2] <<"  " << _arm_pos_target[0].size() <<  std::endl;
     
     
-    if(time_now - _arm_pos_target[0][0][2] > 1/_ctrl_rate)
+    if(time_now - _arm_pos_target[0][0][2] > -3/_ctrl_rate)
     {
 
         hit_start = true;
@@ -468,11 +465,9 @@ void UAV::Hit()
     }
     
 
-    if(_arm_pos_target[0].size() < 0 && _arm_pos_target[1].size() < 0 && hit_start == true)
+    if(_arm_pos_target[0].size() <= 0 && _arm_pos_target[1].size() <= 0 && hit_start == true)
     {
         hit_start = false;
-
-        _get_hit_point = false;
 
         _isSet = false;
         _mode = hover;
@@ -533,22 +528,22 @@ void UAV::hit2base()
     }
 
 
-    // Eigen::Vector3d P_base = {_currentPose.pose.position.x, _currentPose.pose.position.y, _currentPose.pose.position.z};
-    // Eigen::Vector3d Pb_k = P_base + _arm2base + _axis2link;
-    // double tan0 = tan(_Arm._arm_current_pos[0] + _arm_offset[0]);
-    // double p2_k = -sqrt(tan0*tan0/(1+tan0*tan0));
-    // double p2 = (a*_arm_length[0]*(Pa_h[2]-Pb_k[2]) + b*p2_k)/(a*_arm_length[0]*_arm_length[0] + b);
-    // Eigen::Vector3d e2_h = {m1_h/sqrt(m1_h*m1_h+n1_h*n1_h+p1_h*p1_h), n1_h/sqrt(m1_h*m1_h+n1_h*n1_h+p1_h*p1_h), p2};
-    // e2_h.normalize();
-    // Eigen::Vector3d Pb_h = -_arm_length[0]*e2_h + Pa_h;
-    // _arm_hit_pos[0] = atan2(p2, sqrt(m1_h*m1_h+n1_h*n1_h)) + 6.28;
-
-    double p2_h = -1/sqrt(2);
-    double n2_h = sqrt(1-p2_h*p2_h)/(1+(m1_h*m1_h)/(n1_h*n1_h));
-    double m2_h = n2_h * m1_h/n1_h;
-    Eigen::Vector3d e2_h = {m2_h, n2_h, p2_h};
-    _arm_hit_pos[0] = -0.785;
+    Eigen::Vector3d P_base = {_currentPose.pose.position.x, _currentPose.pose.position.y, _currentPose.pose.position.z};
+    Eigen::Vector3d Pb_k = P_base + _arm2base + _axis2link;
+    double tan0 = tan(_Arm._arm_current_pos[0] + _arm_offset[0]);
+    double p2_k = -sqrt(tan0*tan0/(1+tan0*tan0));
+    double p2 = (a*_arm_length[0]*(Pa_h[2]-Pb_k[2]) + b*p2_k)/(a*_arm_length[0]*_arm_length[0] + b);
+    Eigen::Vector3d e2_h = {m1_h, n1_h, p2};
+    e2_h.normalize();
     Eigen::Vector3d Pb_h = -_arm_length[0]*e2_h + Pa_h;
+    _arm_hit_pos[0] = atan2(p2, sqrt(m1_h*m1_h+n1_h*n1_h));
+
+    // double p2_h = -1/sqrt(2);
+    // double n2_h = sqrt(1-p2_h*p2_h)/(1+(m1_h*m1_h)/(n1_h*n1_h));
+    // double m2_h = n2_h * m1_h/n1_h;
+    // Eigen::Vector3d e2_h = {m2_h, n2_h, p2_h};
+    // _arm_hit_pos[0] = -0.785;
+    // Eigen::Vector3d Pb_h = -_arm_length[0]*e2_h + Pa_h;
         
     
     Eigen::Vector3d P_base_h = Pb_h - _arm2base - _axis2link;
@@ -556,6 +551,19 @@ void UAV::hit2base()
     _base_pose[3] = 0, _base_pose[4] = 0, _base_pose[5] = atan2(m1_h, n1_h);
     _base_pose[6] = _hit_pose[6];
     
+}
+
+template<typename T>
+T UAV::checkSafeBox(T pt)
+{
+    if(pt[0] < _SafeBox.x_lim[0]) pt[0] = _SafeBox.x_lim[0];
+    if(pt[0] > _SafeBox.x_lim[1]) pt[0] = _SafeBox.x_lim[1];
+    if(pt[1] < _SafeBox.y_lim[0]) pt[1] = _SafeBox.y_lim[0];
+    if(pt[1] > _SafeBox.y_lim[1]) pt[1] = _SafeBox.y_lim[1];
+    if(pt[2] < _SafeBox.z_lim[0]) pt[2] = _SafeBox.z_lim[0];
+    if(pt[2] > _SafeBox.z_lim[1]) pt[2] = _SafeBox.z_lim[1];
+
+    return pt;
 }
 
 
@@ -595,7 +603,7 @@ void UAV::mainLoop()
             break;
         }
 
-        if(i++ > 5)
+        if(i++ > 50)
         {
             printData();
             i = 0;

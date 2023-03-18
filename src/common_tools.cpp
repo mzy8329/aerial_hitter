@@ -173,7 +173,7 @@ namespace common_tools
     }
 
 
-    bool writeFile(char* name, std::vector<Eigen::Vector3d> data)
+    void writeFile(char* name, std::vector<Eigen::Vector3d> data)
     {//写入文件
 		std::ofstream outfile;               			//创建文件
 
@@ -186,7 +186,7 @@ namespace common_tools
 					<< data[i][2] << "  ";
 			outfile << std::endl;//保存初始的时间、六个关节角度
 		}
-		outfile.close();	
+		outfile.close();
 	}
 
 } // namespace common_tools

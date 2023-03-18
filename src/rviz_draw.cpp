@@ -194,12 +194,12 @@ namespace rviz_draw
         visual.lifetime = ros::Duration(duration);
         visual.points.clear();
 
-        // geometry_msgs::Point pt;
+        geometry_msgs::Point pt;
  
-        // pt.x = point[0];
-        // pt.y = point[1];
-        // pt.z = point[2];
-        // visual.points.push_back(pt);
+        pt.x = point[0];
+        pt.y = point[1];
+        pt.z = point[2];
+        visual.points.push_back(pt);
 
 
         return visual;
@@ -253,6 +253,8 @@ namespace rviz_draw
 
         return visual;
     }
+
+
 
 
 } // namespace rviz_draw

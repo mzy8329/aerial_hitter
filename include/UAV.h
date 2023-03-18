@@ -13,6 +13,7 @@
 #include <visualization_msgs/Marker.h>
 
 #include <eigen3/Eigen/Eigen>
+#include <algorithm>
 
 
 #include "common_tools.h"
@@ -43,7 +44,6 @@ public:
     void state_Callback(const mavros_msgs::StateConstPtr &msg);
     void currentPose_Callback(const geometry_msgs::PoseStampedConstPtr &msg);
     void targetPose_Callback(const trajectory_msgs::MultiDOFJointTrajectoryConstPtr &msg);
-    void hitPoint_Callback(const nav_msgs::OdometryConstPtr &msg);
     void ballPoseVrpnCallBack(const geometry_msgs::PoseStampedConstPtr &body_msg);
     void ballPoseGazeboCallBack(const nav_msgs::OdometryConstPtr &body_msg);
 
@@ -58,6 +58,8 @@ public:
 
     void printData();
     void hit2base();
+    template<typename T>
+    T checkSafeBox(T pt);
 
     void mainLoop();
 
@@ -71,7 +73,6 @@ private:
     ros::Subscriber _target_pose_sub;
     ros::Subscriber _current_pose_sub;
     ros::Subscriber _traj_sub;
-    ros::Subscriber _hitPoint_sub;
     ros::Subscriber _ballPoseVrpn_sub;
     ros::Subscriber _ballPoseGazebo_sub;
 
@@ -91,6 +92,7 @@ private:
 
 
     double _ctrl_rate;
+    double _UAV_Vel;
 
     AerialArm _Arm;
     double _arm_length[2];
@@ -109,8 +111,7 @@ private:
     Eigen::VectorXd _hit_pose;
     Eigen::Vector4d _hit_pose_temp;
 
-    double _UAV_Vel;
-    bool _get_hit_point;
+    
 
     struct
     {
@@ -125,7 +126,7 @@ private:
         TrajPredict trajPredict;
     }_Predict;
 
-    Eigen::Vector3d _point_target = {1.0, 0.5, 0};
+    Eigen::Vector3d _point_target = {0.5, 0.5, 0};
 
     struct
     {
@@ -136,6 +137,13 @@ private:
         float colar_hit[4] = {1, 0.2, 0.2, 0.6};
         float colar_hitPoint[4] = {0.8, 1.0, 0.2, 0.6};
     }_Rviz;
+
+    struct
+    {
+        double x_lim[2] = {-2, 2};
+        double y_lim[2] = {-2, 2};
+        double z_lim[2] = {0.3, 2};
+    }_SafeBox;
 
 };
 

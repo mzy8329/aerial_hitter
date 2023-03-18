@@ -21,7 +21,7 @@ namespace common_tools
 
 
 
-    bool writeFile(char* name, std::vector<Eigen::Vector3d> data);
+    void writeFile(char* name, std::vector<Eigen::Vector3d> data);
 
 } // namespace common_tools
 
