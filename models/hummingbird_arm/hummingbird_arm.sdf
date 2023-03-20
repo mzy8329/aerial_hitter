@@ -5,14 +5,14 @@
       <pose>0 0 0 0 0 0.78539815</pose>
       <inertial>
         <pose>0 0 0 0 -0 0</pose>
-        <mass>2.4</mass>
+        <mass>0.68</mass>
         <inertia>
-          <ixx>0.028</ixx>
+          <ixx>0.0007</ixx>
           <ixy>0</ixy>
           <ixz>0</ixz>
-          <iyy>0.028</iyy>
+          <iyy>0.0007</iyy>
           <iyz>0</iyz>
-          <izz>0.048</izz>
+          <izz>0.012</izz>
         </inertia>
       </inertial>
       <collision name='base_link_inertia_collision'>
@@ -506,7 +506,7 @@
       <timeConstantUp>0.0125</timeConstantUp>
       <timeConstantDown>0.025</timeConstantDown>
       <maxRotVelocity>1100</maxRotVelocity>
-      <motorConstant>20.84e-06</motorConstant>
+      <motorConstant>5.84e-06</motorConstant>
       <momentConstant>0.06</momentConstant>
       <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
       <motorNumber>0</motorNumber>
@@ -523,7 +523,7 @@
       <timeConstantUp>0.0125</timeConstantUp>
       <timeConstantDown>0.025</timeConstantDown>
       <maxRotVelocity>1100</maxRotVelocity>
-      <motorConstant>20.84e-06</motorConstant>
+      <motorConstant>5.84e-06</motorConstant>
       <momentConstant>0.06</momentConstant>
       <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
       <motorNumber>1</motorNumber>
@@ -540,7 +540,7 @@
       <timeConstantUp>0.0125</timeConstantUp>
       <timeConstantDown>0.025</timeConstantDown>
       <maxRotVelocity>1100</maxRotVelocity>
-      <motorConstant>20.84e-06</motorConstant>
+      <motorConstant>5.84e-06</motorConstant>
       <momentConstant>0.06</momentConstant>
       <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
       <motorNumber>2</motorNumber>
@@ -557,7 +557,7 @@
       <timeConstantUp>0.0125</timeConstantUp>
       <timeConstantDown>0.025</timeConstantDown>
       <maxRotVelocity>1100</maxRotVelocity>
-      <motorConstant>20.84e-06</motorConstant>
+      <motorConstant>5.84e-06</motorConstant>
       <momentConstant>0.06</momentConstant>
       <commandSubTopic>/gazebo/command/motor_speed</commandSubTopic>
       <motorNumber>3</motorNumber>
@@ -729,11 +729,12 @@
     </joint>
 
     <!-- <plugin name="arm_controller" filename="libarm_ctrl_plugin.so"/> -->
+
     <plugin name="arm_0_controller" filename="libjoint_controller.so">
       <jointname>aerial_arm::arm_0_joint</jointname>
-      <p_gain_pos>3.0</p_gain_pos>
-      <i_gain_pos>15</i_gain_pos>
-      <d_gain_pos>0.2</d_gain_pos>
+      <p_gain_pos>0.01</p_gain_pos>
+      <i_gain_pos>0</i_gain_pos>
+      <d_gain_pos>0.001</d_gain_pos>
       <p_gain_vel>1</p_gain_vel>
       <i_gain_vel>0</i_gain_vel>
       <d_gain_vel>0</d_gain_vel>
@@ -741,9 +742,9 @@
 
     <plugin name="arm_1_controller" filename="libjoint_controller.so">
       <jointname>aerial_arm::arm_1_joint</jointname>
-      <p_gain_pos>10</p_gain_pos>
-      <i_gain_pos>20</i_gain_pos>
-      <d_gain_pos>0.2</d_gain_pos>
+      <p_gain_pos>0.01</p_gain_pos>
+      <i_gain_pos>0.001</i_gain_pos>
+      <d_gain_pos>0.001</d_gain_pos>
       <p_gain_vel>1</p_gain_vel>
       <i_gain_vel>0</i_gain_vel>
       <d_gain_vel>0</d_gain_vel>

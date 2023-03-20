@@ -54,15 +54,13 @@
   <node name="get_gazebo_pose" pkg="aerial_hitter" type="get_gazebo_pose" output="screen" />
   <node name="aerial_hitter_main_ctrl" pkg="aerial_hitter" type="aerial_hitter_main_ctrl" output="screen" />
   
-  
-  <!-- <include file="$(find aerial_hitter)/launch/simulation/throw_ball.launch" /> -->
+  <include file="$(find aerial_hitter)/launch/simulation/throw_ball.launch" />
 
 
   <node pkg="tf" type="static_transform_publisher" name="trajView2map" args="0 0 0 0 0 0  /map /traj_view 10" />
   <node pkg="tf" type="static_transform_publisher" name="trajPredict2map" args="0 0 0 0 0 0  /map /traj_predict 10" />
   <node pkg="tf" type="static_transform_publisher" name="trajHit2map" args="0 0 0 0 0 0  /map /traj_hit 10" />
   <node pkg="tf" type="static_transform_publisher" name="trajHitPoint2map" args="0 0 0 0 0 0  /map /traj_hitPoint 10" />
-  <node pkg="tf" type="static_transform_publisher" name="HitPointTemp2map" args="0 0 0 0 0 0  /map /hit_pose_temp 10" />
 
 
 

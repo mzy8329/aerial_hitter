@@ -60,6 +60,13 @@ namespace common_tools
         double X1 = pt_pass[0] - pt_start[0];
         double A1 = T1*T1; double B1 = -4*(X1-pt_start[1]*T1-1/2.0*T1*V1); double C1 = -V1*V1;
         double a1 = (-B1 + sqrt(B1*B1 - 4*A1*C1))/(2*A1);
+
+        int mode = 0;
+        if(a1 < 0)
+        {
+            mode = 1;
+            a1 = (-B1 - sqrt(B1*B1 - 4*A1*C1))/(2*A1);
+        }
         double t1_s = (T1+V1/a1)/2.0;
         double t1_s_floor = floor(t1_s/dt)*dt;
         double t1_e = (T1-V1/a1)/2.0;
@@ -67,12 +74,22 @@ namespace common_tools
 
         if(t1_s<0 || t1_e < 0)
         {
-            a1 = (-B1 - sqrt(B1*B1 - 4*A1*C1))/(2*A1);
+            if(mode == 0)
+            {
+                a1 = (-B1 - sqrt(B1*B1 - 4*A1*C1))/(2*A1);
+            }
+            else
+            {
+                a1 = (-B1 + sqrt(B1*B1 - 4*A1*C1))/(2*A1);
+            }
+            
             t1_s = (T1+V1/a1)/2.0;
             t1_s_floor = floor(t1_s/dt)*dt;
             t1_e = (T1-V1/a1)/2.0;
             t1_e_floor = floor(t1_e/dt)*dt;
         }
+
+
 
         for(double t = dt; t <= t1_s_floor; t += dt)
         {
@@ -92,19 +109,36 @@ namespace common_tools
         }
 
         // 第二段
-        double T2 = t_end_floor - pt_pass[1];
+        double T2 = t_end_floor - pt_pass[2];
         double V2 = pt_end[1] - pt_pass[1];
         double X2 = pt_end[0] - pt_pass[0];
         double A2 = T2*T2; double B2 = -4*(X2-pt_pass[1]*T2-1/2.0*T2*V2); double C2 = -V2*V2;
-        double a2 = (-B1 + sqrt(B1*B1 - 4*A1*C1))/(2*A1);
+        double a2 = (-B2 + sqrt(B2*B2 - 4*A2*C2))/(2*A2);
+
+        mode = 0;
+        if(a2 < 0)
+        {
+            mode = 1;
+            a2 = (-B2 - sqrt(B2*B2 - 4*A2*C2))/(2*A2);
+        }
         double t2_s = (T2+V2/a2)/2.0;
         double t2_s_floor = floor(t2_s/dt)*dt;
         double t2_e = (T2-V2/a2)/2.0;
         double t2_e_floor = floor(t2_e/dt)*dt;
 
+
         if(t2_s<0 || t2_e < 0)
         {
-            a2 = (-B1 - sqrt(B1*B1 - 4*A1*C1))/(2*A1);
+            if(mode == 0)
+            {
+                a2 = (-B2 - sqrt(B2*B2 - 4*A2*C2))/(2*A2);
+            }
+            else
+            {
+                a2 = (-B2 + sqrt(B2*B2 - 4*A2*C2))/(2*A2);
+            }
+
+            
             t2_s = (T2+V2/a2)/2.0;
             t2_s_floor = floor(t2_s/dt)*dt;
             t2_e = (T2-V2/a2)/2.0;
@@ -123,7 +157,7 @@ namespace common_tools
 
 
         x_temp = pt_temp[0], v_temp = pt_temp[1], t_temp = pt_temp[2];
-        for(double t = dt; t <= t2_s_floor; t += dt)
+        for(double t = dt; t <= t2_e_floor; t += dt)
         {
             pt_temp[0] = x_temp + v_temp*t - 1/2.0*a2*t*t;
             pt_temp[1] = v_temp - a2*t;

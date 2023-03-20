@@ -97,7 +97,7 @@
     </link> -->
     <link name="link_0">
       <inertial>
-        <mass>0.0056</mass>
+        <mass>0.00056</mass>
         <!--mass>0.0056</mass-->
         <!-- inertia based on solid sphere 2/5 mr^2 -->
         <inertia>
@@ -115,6 +115,31 @@
             <radius>0.0325</radius>
           </sphere>
         </geometry>
+        
+        <surface>
+          <friction>
+            <ode>
+              <mu>1.0</mu>
+              <mu2>1.0</mu2>
+            </ode>
+          </friction>
+
+          <bounce>
+            <restitution_coefficient>0</restitution_coefficient>
+            <threshold>1e+06</threshold>
+          </bounce>
+
+          <contact>
+            <ode>
+              <kp>5000</kp>
+              <kd>0.0</kd>
+              <min_depth>0.0</min_depth>
+              <max_vel>1000</max_vel>
+            </ode>
+          </contact>
+
+        </surface>
+
       </collision>
       <visual name="visual">
         <geometry>

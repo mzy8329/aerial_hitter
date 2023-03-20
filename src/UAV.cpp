@@ -20,6 +20,8 @@ UAV::UAV(ros::NodeHandle nh, double ctrl_freq, double UAV_vel)
     _local_pose_pub = nh.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local", 1);
     _local_traj_pub = nh.advertise<trajectory_msgs::MultiDOFJointTrajectory>("/mavros/setpoint_trajectory/local", 1);
     _rviz_marker_pub = nh.advertise<visualization_msgs::Marker>("/traj_view", 1);
+    _hitPoint_pub = nh.advertise<nav_msgs::Odometry>("/UAV/hitPoint", 1);
+
 
     _set_mode_client = nh.serviceClient<mavros_msgs::SetMode>("/mavros/set_mode");
     _arming_client = nh.serviceClient<mavros_msgs::CommandBool>("/mavros/cmd/arming");
@@ -27,7 +29,12 @@ UAV::UAV(ros::NodeHandle nh, double ctrl_freq, double UAV_vel)
 
     _pose_hover.pose.position.x = 0;
     _pose_hover.pose.position.y = 0;
-    _pose_hover.pose.position.z = 1;
+    _pose_hover.pose.position.z = 1.5;
+    tf::Quaternion q = tf::createQuaternionFromYaw(0);
+    _pose_hover.pose.orientation.x = q.getX();
+    _pose_hover.pose.orientation.y = q.getY();
+    _pose_hover.pose.orientation.z = q.getZ();
+    _pose_hover.pose.orientation.w = q.getW();
 
     _base_pose.resize(7,1);
     _hit_pose.resize(7,1);    
@@ -85,6 +92,10 @@ void UAV::ballPoseGazeboCallBack(const nav_msgs::OdometryConstPtr &body_msg)
         _rviz_marker_pub.publish(_Rviz.mark);
 
         i_2 = 0;
+        if(i_1 > 100)
+        {
+            i_1 = 0;
+        }
     }
     
     _Predict.trajPredict.pushNewPoint(point);
@@ -180,9 +191,22 @@ void UAV::Hover()
 {
     _pose_hover.header.stamp = ros::Time::now();
     _local_pose_pub.publish(_pose_hover);
+    
 
     if(!_isSet)
     {
+        _targetTraj_xyz[0].clear();
+        _targetTraj_xyz[1].clear();
+        _targetTraj_xyz[2].clear();
+        _targetPose.points.clear();
+
+        for(int i = 0; i < 2; i++)
+        {
+            _arm_pos_target[i].clear();
+            _arm_pos_target[i].push_back(Eigen::Vector3d({_arm_start[i], 0, 0}));
+        }
+        _hit_pose_temp = {0, 0, 0, 0};
+
         _isSet = _Arm.GetSet();
     }
     else
@@ -213,58 +237,23 @@ void UAV::Move()
         {
             pose_temp = {traj_predict[i][0], traj_predict[i][1], traj_predict[i][2]};
             double dist = (pose_now-pose_temp).norm();
-            if(dist > dist_max && (_hit_pose_temp.isZero() || (pose_temp-Eigen::Vector3d({_hit_pose_temp[0], _hit_pose_temp[1], _hit_pose_temp[2]})).norm()<1.0))
+            if(dist > dist_max 
+            && (_hit_pose_temp.isZero() || _hit_pose_temp[3] == 0 || (pose_temp-Eigen::Vector3d({_hit_pose_temp[0], _hit_pose_temp[1], _hit_pose_temp[2]})).norm()< 2.0)
+            // && (pose_temp[0] > _SafeBox.x_lim[0] && pose_temp[0] < _SafeBox.x_lim[1])
+            // && (pose_temp[1] > _SafeBox.y_lim[0] && pose_temp[1] < _SafeBox.y_lim[1])
+            // && (pose_temp[2] > _SafeBox.z_lim[0] && pose_temp[2] < _SafeBox.z_lim[1])
+            )
             {
-                dist_max = (pose_now-pose_temp).norm();
+                dist_max = dist;
                 k = i;
             }
         }
         _hit_pose_temp = checkSafeBox(traj_predict[k]);
-        
 
-        // 规划无人机轨迹
-
-        for(int i = 0; i < 3; i++)
-        {
-            Eigen::Vector3d pt_s;
-            Eigen::Vector3d pt_e;
-            
-            if(_targetPose.points.empty())
-            {
-                pt_s[0] = pose_now[i];
-                pt_s[1] = 0;
-            }
-            else
-            {
-                switch (i)
-                {
-                case 0:
-                    pt_s[0] = _targetPose.points[0].transforms[0].translation.x;
-                    pt_s[1] = _targetPose.points[0].velocities[0].linear.x;
-                    break;
-                case 1:
-                    pt_s[0] = _targetPose.points[0].transforms[0].translation.y;
-                    pt_s[1] = _targetPose.points[0].velocities[0].linear.y;
-                    break;
-                case 2:
-                    pt_s[0] = _targetPose.points[0].transforms[0].translation.z;
-                    pt_s[1] = _targetPose.points[0].velocities[0].linear.z;
-                    break;
-                default:
-                    break;
-                }
-            }
-            pt_s[2] = ros::Time::now().toSec();
-            pt_e = {_hit_pose_temp[i], 0, ros::Time::now().toSec()+0.9*(_hit_pose_temp[3]-ros::Time::now().toSec())};
-
-            _targetTraj_xyz[i] = common_tools::triangleProfile(pt_s, pt_e, 1.0/_ctrl_rate);
-        }
-        _Rviz.mark = rviz_draw::draw(_hit_pose_temp, _Rviz.colar_hit, "hit_pose_temp");
-        _rviz_marker_pub.publish(_Rviz.mark);
 
         // 检验临时击球点是否可选取为击球点
         Eigen::Vector3d hit_pose_temp = {_hit_pose_temp[0], _hit_pose_temp[1], _hit_pose_temp[2]};
-        if((hit_pose_temp-pose_now).norm() < 10*(_hit_pose_temp[3]-ros::Time::now().toSec())*_UAV_Vel
+        if((hit_pose_temp-pose_now).norm() < (_hit_pose_temp[3]-ros::Time::now().toSec())*_UAV_Vel
         && _Predict.trajPredict.predictTraj_hit(k, _point_target))
         {
             _Rviz.mark = rviz_draw::draw(_Predict.trajPredict.getTraj_hit(), _Rviz.colar_hit, "traj_hit");
@@ -282,6 +271,45 @@ void UAV::Move()
             }
             else
             {
+                // 规划无人机轨迹
+                for(int i = 0; i < 3; i++)
+                {
+                    Eigen::Vector3d pt_s;
+                    Eigen::Vector3d pt_e;
+                    
+                    if(_targetPose.points.empty())
+                    {
+                        pt_s[0] = pose_now[i];
+                        pt_s[1] = 0;
+                    }
+                    else
+                    {
+                        switch (i)
+                        {
+                        case 0:
+                            pt_s[0] = _targetPose.points[0].transforms[0].translation.x;
+                            pt_s[1] = _targetPose.points[0].velocities[0].linear.x;
+                            break;
+                        case 1:
+                            pt_s[0] = _targetPose.points[0].transforms[0].translation.y;
+                            pt_s[1] = _targetPose.points[0].velocities[0].linear.y;
+                            break;
+                        case 2:
+                            pt_s[0] = _targetPose.points[0].transforms[0].translation.z;
+                            pt_s[1] = _targetPose.points[0].velocities[0].linear.z;
+                            break;
+                        default:
+                            break;
+                        }
+                    }
+                    pt_s[2] = ros::Time::now().toSec();
+
+                    pt_e = {_hit_pose_temp[i], 0, ros::Time::now().toSec()+0.5*(_hit_pose_temp[3]-ros::Time::now().toSec())};
+
+                    _targetTraj_xyz[i] = common_tools::triangleProfile(pt_s, pt_e, 2.0/_ctrl_rate);
+                }
+
+                // 求解无人机状态
                 _hit_pose = hitPoint;
                 hit2base();
 
@@ -299,43 +327,66 @@ void UAV::Move()
                 double temp = (a*q/c-p)/(a*d/c-b);
                 double vel_arm[2] = {(p-b*temp)/a, temp};
 
-                double t_1 = (_arm_hit_pos[1]-_arm_pos_target[1][0][0])/std::max(_arm_pos_target[1][0][1], vel_arm[1]);
-                double t_2 = (_arm_end[1]-_arm_hit_pos[1])/vel_arm[1];
-
-                std::cout<<t_1 << "  " <<t_2 << std::endl;
+                double t_1 = std::min(2*abs((_arm_hit_pos[0]-_arm_pos_target[0][0][0])/(_arm_pos_target[0][0][1] + vel_arm[0])),
+                                      2*abs((_arm_hit_pos[1]-_arm_pos_target[1][0][0])/(_arm_pos_target[1][0][1] + vel_arm[1])));
+                double t_2 = std::min(2*abs((_arm_end[0]-_arm_hit_pos[0])/vel_arm[0]),
+                                      2*abs((_arm_end[1]-_arm_hit_pos[1])/vel_arm[1]));
+    
                 for(int i = 0; i < 2; i++)
                 {
-                    // double time = ros::Time::now().toSec();
-                    // double time_start = _hit_pose[6]-t_1-t_2;
-                    // if(time > time_start)
-                    // {
-                    //     time_start = time;
-                    //     t_1 = (_hit_pose[6]-time_start)/(t_1+t_2)*t_1;
-                    //     t_2 = (_hit_pose[6]-time_start)/(t_1+t_2)*t_2;
-                    // }
-                    // std::cout<<time_start<<"  "<<_hit_pose[6]<<std::endl;
-
                     Eigen::Vector3d P_s = {_arm_pos_target[i][0][0],  _arm_pos_target[i][0][1], _hit_pose[6]-t_2-t_1};
                     Eigen::Vector3d P_p = {_arm_hit_pos[i], vel_arm[i], _hit_pose[6]-t_2};
                     Eigen::Vector3d P_e = {_arm_end[i], 0, _hit_pose[6]};
                     _arm_pos_target[i] =  common_tools::triangleProfile(P_s, P_e, P_p, 1.0/_ctrl_rate);
                 }   
-
-                
-                char name_1[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/arm0.txt";
-                char name_2[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/arm1.txt";
-
-                common_tools::writeFile(name_1, _arm_pos_target[0]);
-                common_tools::writeFile(name_2, _arm_pos_target[1]);
-
                 _mode = hit;
             }            
+        }
+        else
+        {
+            // 规划无人机轨迹
+            for(int i = 0; i < 3; i++)
+            {
+                Eigen::Vector3d pt_s;
+                Eigen::Vector3d pt_e;
+                
+                if(_targetPose.points.empty())
+                {
+                    pt_s[0] = pose_now[i];
+                    pt_s[1] = 0;
+                }
+                else
+                {
+                    switch (i)
+                    {
+                    case 0:
+                        pt_s[0] = _targetPose.points[0].transforms[0].translation.x;
+                        pt_s[1] = _targetPose.points[0].velocities[0].linear.x;
+                        break;
+                    case 1:
+                        pt_s[0] = _targetPose.points[0].transforms[0].translation.y;
+                        pt_s[1] = _targetPose.points[0].velocities[0].linear.y;
+                        break;
+                    case 2:
+                        pt_s[0] = _targetPose.points[0].transforms[0].translation.z;
+                        pt_s[1] = _targetPose.points[0].velocities[0].linear.z;
+                        break;
+                    default:
+                        break;
+                    }
+                }
+                pt_s[2] = ros::Time::now().toSec();
+
+                pt_e = {(_hit_pose_temp[i]+pose_now[i])/2.0, 0, ros::Time::now().toSec()+(_hit_pose_temp[3]-ros::Time::now().toSec())};
+
+                _targetTraj_xyz[i] = common_tools::triangleProfile(pt_s, pt_e, 2.0/_ctrl_rate);
+            }
         }
 
 
     }
 
-    if(!_targetTraj_xyz[0].empty())
+    if(_mode == move && !_targetTraj_xyz[0].empty())
     {
         _targetPose.header.stamp = ros::Time::now();
 
@@ -343,10 +394,19 @@ void UAV::Move()
         geometry_msgs::Transform temp_pos;
         geometry_msgs::Twist temp_vel;
 
+        _targetTraj_xyz[0][0] = checkSafeBox(_targetTraj_xyz[0][0]);
+        _targetTraj_xyz[1][0] = checkSafeBox(_targetTraj_xyz[1][0]);
+        _targetTraj_xyz[2][0] = checkSafeBox(_targetTraj_xyz[2][0]);
 
         temp_pos.translation.x = _targetTraj_xyz[0][0][0];
         temp_pos.translation.y = _targetTraj_xyz[1][0][0];
         temp_pos.translation.z = _targetTraj_xyz[2][0][0];
+
+        tf::Quaternion q = tf::createQuaternionFromYaw(0);
+        temp_pos.rotation.x = q.getX();
+        temp_pos.rotation.y = q.getY();
+        temp_pos.rotation.z = q.getZ();
+        temp_pos.rotation.w = q.getW();
 
         temp_vel.linear.x = _targetTraj_xyz[0][0][1];
         temp_vel.linear.y = _targetTraj_xyz[1][0][1];
@@ -356,7 +416,7 @@ void UAV::Move()
         temp_point.velocities.clear();
         temp_point.transforms.push_back(temp_pos);
         temp_point.velocities.push_back(temp_vel);
-        temp_point.time_from_start = ros::Duration(1.0/_ctrl_rate);
+        temp_point.time_from_start = ros::Duration(0);
         _targetPose.points.clear();
         _targetPose.points.push_back(temp_point);
 
@@ -378,6 +438,12 @@ void UAV::Move()
             _targetTraj_xyz[1].erase(_targetTraj_xyz[1].begin());
             _targetTraj_xyz[2].erase(_targetTraj_xyz[2].begin());
         }
+        else
+        {
+            _targetTraj_xyz[0][0][1] = 0;
+            _targetTraj_xyz[1][0][1] = 0;
+            _targetTraj_xyz[2][0][1] = 0;
+        }
 
         if(ros::Time::now().toSec()-_hit_pose_temp[3]>2)
         {
@@ -397,10 +463,19 @@ void UAV::Hit()
         geometry_msgs::Transform temp_pos;
         geometry_msgs::Twist temp_vel;
 
+        _targetTraj_xyz[0][0] = checkSafeBox(_targetTraj_xyz[0][0]);
+        _targetTraj_xyz[1][0] = checkSafeBox(_targetTraj_xyz[1][0]);
+        _targetTraj_xyz[2][0] = checkSafeBox(_targetTraj_xyz[2][0]);
 
         temp_pos.translation.x = _targetTraj_xyz[0][0][0];
         temp_pos.translation.y = _targetTraj_xyz[1][0][0];
         temp_pos.translation.z = _targetTraj_xyz[2][0][0];
+
+        tf::Quaternion q = tf::createQuaternionFromYaw(_base_pose[5]);
+        temp_pos.rotation.x = q.getX();
+        temp_pos.rotation.y = q.getY();
+        temp_pos.rotation.z = q.getZ();
+        temp_pos.rotation.w = q.getW();
 
         temp_vel.linear.x = _targetTraj_xyz[0][0][1];
         temp_vel.linear.y = _targetTraj_xyz[1][0][1];
@@ -410,7 +485,7 @@ void UAV::Hit()
         temp_point.velocities.clear();
         temp_point.transforms.push_back(temp_pos);
         temp_point.velocities.push_back(temp_vel);
-        temp_point.time_from_start = ros::Duration(1.0/_ctrl_rate);
+        temp_point.time_from_start = ros::Duration(0);
         _targetPose.points.clear();
         _targetPose.points.push_back(temp_point);
 
@@ -423,20 +498,37 @@ void UAV::Hit()
             _targetTraj_xyz[1].erase(_targetTraj_xyz[1].begin());
             _targetTraj_xyz[2].erase(_targetTraj_xyz[2].begin());
         }
+        else
+        {
+            _targetTraj_xyz[0][0][1] = 0;
+            _targetTraj_xyz[1][0][1] = 0;
+            _targetTraj_xyz[2][0][1] = 0;
+        }
+
+        nav_msgs::Odometry odom_hitPt;
+        odom_hitPt.header.frame_id = "map";
+        odom_hitPt.child_frame_id = "hitPoint";
+        odom_hitPt.pose.pose.position.x = temp_pos.translation.x;
+        odom_hitPt.pose.pose.position.y = temp_pos.translation.y;
+        odom_hitPt.pose.pose.position.z = temp_pos.translation.z;
+        odom_hitPt.pose.pose.orientation.x = q.getX();
+        odom_hitPt.pose.pose.orientation.y = q.getY();
+        odom_hitPt.pose.pose.orientation.z = q.getZ();
+        odom_hitPt.pose.pose.orientation.w = q.getW();
+        _hitPoint_pub.publish(odom_hitPt);
         
     }
 
 
     static bool hit_start = false;
     double time_now = ros::Time::now().toSec();
-    // std::cout<< time_now <<"  " <<_arm_pos_target[0][0][2] <<"  " << _arm_pos_target[0].size() <<  std::endl;
+    // std::cout<< time_now <<"  " <<_arm_pos_targetca[0][0][2] <<"  " << _arm_pos_target[0].size() <<  std::endl;
     
-    
-    if(time_now - _arm_pos_target[0][0][2] > -3/_ctrl_rate)
+    if(time_now - _arm_pos_target[0][0][2] > 1.0/_ctrl_rate)
     {
 
         hit_start = true;
-        double pos[2] = {_arm_end[0], _arm_end[1]};
+        double pos[2] = {_arm_end[0] - _arm_offset[0], _arm_end[1] - _arm_offset[1]};
 
         if(_arm_pos_target[0].size() > 0)
         {
@@ -447,7 +539,7 @@ void UAV::Hit()
 
             pos[0] = _arm_pos_target[0][0][0] - _arm_offset[0];
             _arm_pos_target[0].erase(_arm_pos_target[0].begin());
-
+            // std::cout << _arm_pos_target[0][0][0] << " " << _arm_offset[0] << " ";
         } 
 
         if(_arm_pos_target[1].size() > 0)
@@ -458,7 +550,7 @@ void UAV::Hit()
             }
 
             pos[1] = _arm_pos_target[1][0][0] - _arm_offset[1];
-            _arm_pos_target[1].erase(_arm_pos_target[0].begin());
+            _arm_pos_target[1].erase(_arm_pos_target[1].begin());
         }
         // std::cout << pos[0] << " " << pos[1] << std::endl;
         _Arm.ctrlArm(pos[0], pos[1]);
@@ -470,7 +562,10 @@ void UAV::Hit()
         hit_start = false;
 
         _isSet = false;
-        _mode = hover;
+        if(ros::Time::now().toSec()-_hit_pose[6]>3)
+        {
+            _mode = hover;
+        }
     }
 }
 
@@ -532,7 +627,7 @@ void UAV::hit2base()
     Eigen::Vector3d Pb_k = P_base + _arm2base + _axis2link;
     double tan0 = tan(_Arm._arm_current_pos[0] + _arm_offset[0]);
     double p2_k = -sqrt(tan0*tan0/(1+tan0*tan0));
-    double p2 = (a*_arm_length[0]*(Pa_h[2]-Pb_k[2]) + b*p2_k)/(a*_arm_length[0]*_arm_length[0] + b);
+    double p2 = (a*_arm_length[0]*(Pa_h[2]-Pb_k[2]) + b*(p2_k-sqrt(m1_h*m1_h+n1_h*n1_h)))/(a*_arm_length[0]*_arm_length[0] + b);
     Eigen::Vector3d e2_h = {m1_h, n1_h, p2};
     e2_h.normalize();
     Eigen::Vector3d Pb_h = -_arm_length[0]*e2_h + Pa_h;
@@ -548,8 +643,10 @@ void UAV::hit2base()
     
     Eigen::Vector3d P_base_h = Pb_h - _arm2base - _axis2link;
     _base_pose[0] = P_base_h[0], _base_pose[1] = P_base_h[1], _base_pose[2] = P_base_h[2]; 
-    _base_pose[3] = 0, _base_pose[4] = 0, _base_pose[5] = atan2(m1_h, n1_h);
+    _base_pose[3] = 0, _base_pose[4] = 0, _base_pose[5] = atan2(n1_h, m1_h);
     _base_pose[6] = _hit_pose[6];
+
+    std::cout<<_base_pose[0]<<" "<<_base_pose[1]<<" "<<_base_pose[2]<<" "<<_base_pose[5]<<std::endl;
     
 }
 

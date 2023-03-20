@@ -11,6 +11,8 @@
 #include <mavros_msgs/SetMode.h>
 #include <nav_msgs/Odometry.h>
 #include <visualization_msgs/Marker.h>
+#include <tf/LinearMath/Quaternion.h>
+#include <tf/tf.h>
 
 #include <eigen3/Eigen/Eigen>
 #include <algorithm>
@@ -36,7 +38,7 @@ typedef enum{
 class UAV
 {
 public:
-    UAV(ros::NodeHandle nh, double ctrl_period = 50, double UAV_vel = 2.0);
+    UAV(ros::NodeHandle nh, double ctrl_period = 50, double UAV_vel = 3.0);
     ~UAV(){;;}
 
     UAV_model_e _mode;
@@ -79,6 +81,7 @@ private:
     ros::Publisher _local_pose_pub;
     ros::Publisher _local_traj_pub;
     ros::Publisher _rviz_marker_pub;
+    ros::Publisher _hitPoint_pub;
 
     ros::ServiceClient _set_mode_client;
     ros::ServiceClient _arming_client;
@@ -126,7 +129,7 @@ private:
         TrajPredict trajPredict;
     }_Predict;
 
-    Eigen::Vector3d _point_target = {0.5, 0.5, 0};
+    Eigen::Vector3d _point_target = {1.0, 0.2, 0};
 
     struct
     {

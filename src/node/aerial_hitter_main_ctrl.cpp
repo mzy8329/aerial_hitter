@@ -7,7 +7,7 @@
 
 #define CTRL_FREQ 100.0
 
-double arm_length[2] = {0.106, 0.190};
+double arm_length[2] = {0.106, 0.160};
 double arm_offset[2] = {-2.6374, 0};
 
 double arm_start[2] = {-2.3, -1.8};  
