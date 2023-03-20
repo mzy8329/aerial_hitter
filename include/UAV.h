@@ -38,7 +38,7 @@ typedef enum{
 class UAV
 {
 public:
-    UAV(ros::NodeHandle nh, double ctrl_period = 50, double UAV_vel = 3.0);
+    UAV(ros::NodeHandle nh, double ctrl_period = 50, double UAV_vel = 2.0);
     ~UAV(){;;}
 
     UAV_model_e _mode;

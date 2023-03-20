@@ -416,7 +416,7 @@ void UAV::Move()
         temp_point.velocities.clear();
         temp_point.transforms.push_back(temp_pos);
         temp_point.velocities.push_back(temp_vel);
-        temp_point.time_from_start = ros::Duration(0);
+        temp_point.time_from_start = ros::Duration(1.0/_ctrl_rate);
         _targetPose.points.clear();
         _targetPose.points.push_back(temp_point);
 
@@ -485,7 +485,7 @@ void UAV::Hit()
         temp_point.velocities.clear();
         temp_point.transforms.push_back(temp_pos);
         temp_point.velocities.push_back(temp_vel);
-        temp_point.time_from_start = ros::Duration(0);
+        temp_point.time_from_start = ros::Duration(1.0/_ctrl_rate);
         _targetPose.points.clear();
         _targetPose.points.push_back(temp_point);
 
