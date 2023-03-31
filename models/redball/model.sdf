@@ -97,13 +97,13 @@
     </link> -->
     <link name="link_0">
       <inertial>
-        <mass>0.00056</mass>
+        <mass>0.0000000056</mass>
         <!--mass>0.0056</mass-->
         <!-- inertia based on solid sphere 2/5 mr^2 -->
         <inertia>
-          <ixx>2.37e-6</ixx>
-          <iyy>2.37e-6</iyy>
-          <izz>2.37e-6</izz>
+          <ixx>2.37e-8</ixx>
+          <iyy>2.37e-8</iyy>
+          <izz>2.37e-8</izz>
           <ixy>0</ixy>
           <ixz>0</ixz>
           <iyz>0</iyz>

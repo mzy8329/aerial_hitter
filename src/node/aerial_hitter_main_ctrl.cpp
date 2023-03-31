@@ -14,7 +14,7 @@ double arm_start[2] = {-2.3, -1.8};
 double arm_end[2] = {-0.3, 0};
 double arm_time_pass[2] = {0.05, 0.05};
 
-Eigen::Vector3d axis2link = {-0.00732, 0, -0.4};
+Eigen::Vector3d axis2link = {-0.00732, 0, -0.04};
 Eigen::Vector3d arm2base = {0, 0, -0.012};
 
 

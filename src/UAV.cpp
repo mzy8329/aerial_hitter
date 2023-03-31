@@ -230,21 +230,21 @@ void UAV::Move()
 
         // 计算临时击球点
         int k = 0;
-        double dist_max = 0;
+        double dist_min = 1000000000;
         Eigen::Vector3d pose_now = {_currentPose.pose.position.x, _currentPose.pose.position.y, _currentPose.pose.position.z};
         Eigen::Vector3d pose_temp;
         for(int i = 0; i < traj_predict.size(); i++)
         {
             pose_temp = {traj_predict[i][0], traj_predict[i][1], traj_predict[i][2]};
-            double dist = (pose_now-pose_temp).norm();
-            if(dist > dist_max 
+            double dist = 0.4*abs(pose_now[0]-pose_temp[0]) + 0.4*abs(pose_now[1]-pose_temp[1]) + 0.2*abs(pose_now[0]-pose_temp[0]);
+            if(dist < dist_min 
             && (_hit_pose_temp.isZero() || _hit_pose_temp[3] == 0 || (pose_temp-Eigen::Vector3d({_hit_pose_temp[0], _hit_pose_temp[1], _hit_pose_temp[2]})).norm()< 2.0)
             // && (pose_temp[0] > _SafeBox.x_lim[0] && pose_temp[0] < _SafeBox.x_lim[1])
             // && (pose_temp[1] > _SafeBox.y_lim[0] && pose_temp[1] < _SafeBox.y_lim[1])
             // && (pose_temp[2] > _SafeBox.z_lim[0] && pose_temp[2] < _SafeBox.z_lim[1])
             )
             {
-                dist_max = dist;
+                dist_min = dist;
                 k = i;
             }
         }
@@ -252,7 +252,7 @@ void UAV::Move()
 
 
         // 检验临时击球点是否可选取为击球点
-        Eigen::Vector3d hit_pose_temp = {_hit_pose_temp[0], _hit_pose_temp[1], _hit_pose_temp[2]};
+        Eigen::Vector3d hit_pose_temp = {traj_predict[k][0], traj_predict[k][1], traj_predict[k][2]};
         if((hit_pose_temp-pose_now).norm() < (_hit_pose_temp[3]-ros::Time::now().toSec())*_UAV_Vel
         && _Predict.trajPredict.predictTraj_hit(k, _point_target))
         {
@@ -272,6 +272,9 @@ void UAV::Move()
             else
             {
                 // 规划无人机轨迹
+                _hit_pose = hitPoint;
+                hit2base();
+
                 for(int i = 0; i < 3; i++)
                 {
                     Eigen::Vector3d pt_s;
@@ -304,18 +307,13 @@ void UAV::Move()
                     }
                     pt_s[2] = ros::Time::now().toSec();
 
-                    pt_e = {_hit_pose_temp[i], 0, ros::Time::now().toSec()+0.5*(_hit_pose_temp[3]-ros::Time::now().toSec())};
+                    pt_e = {_base_pose[i], 0, ros::Time::now().toSec()+0.5*(_hit_pose_temp[3]-ros::Time::now().toSec())};
 
                     _targetTraj_xyz[i] = common_tools::triangleProfile(pt_s, pt_e, 2.0/_ctrl_rate);
                 }
 
                 // 求解无人机状态
-                _hit_pose = hitPoint;
-                hit2base();
-
-                double time_temp = ros::Time::now().toSec();
-                Eigen::Vector3d pt_hit = {_hit_pose[0], _hit_pose[1], _hit_pose[2]};
-                Eigen::Vector3d pt_base = pose_now;
+                
 
                 double p = sqrt(_hit_pose[3]*_hit_pose[3] + _hit_pose[4]*_hit_pose[4]);
                 double q = _hit_pose[5];
@@ -401,6 +399,7 @@ void UAV::Move()
         temp_pos.translation.x = _targetTraj_xyz[0][0][0];
         temp_pos.translation.y = _targetTraj_xyz[1][0][0];
         temp_pos.translation.z = _targetTraj_xyz[2][0][0];
+        // std::cout<<temp_pos.translation.x<<" "<<temp_pos.translation.y<<" "<<temp_pos.translation.z<<std::endl;
 
         tf::Quaternion q = tf::createQuaternionFromYaw(0);
         temp_pos.rotation.x = q.getX();
@@ -646,7 +645,10 @@ void UAV::hit2base()
     _base_pose[3] = 0, _base_pose[4] = 0, _base_pose[5] = atan2(n1_h, m1_h);
     _base_pose[6] = _hit_pose[6];
 
-    std::cout<<_base_pose[0]<<" "<<_base_pose[1]<<" "<<_base_pose[2]<<" "<<_base_pose[5]<<std::endl;
+    // std::cout<<Pt[0]<<" "<<Pt[1]<<" "<<Pt[2]<<std::endl;
+    // std::cout<<Pa_h[0]<<" "<<Pa_h[1]<<" "<<Pa_h[2]<<std::endl;
+    // std::cout<<Pb_h[0]<<" "<<Pb_h[1]<<" "<<Pb_h[2]<<std::endl;
+    // std::cout<<_base_pose[0]<<" "<<_base_pose[1]<<" "<<_base_pose[2]<<std::endl<<std::endl;
     
 }
 

@@ -145,7 +145,7 @@ private:
     {
         double x_lim[2] = {-2, 2};
         double y_lim[2] = {-2, 2};
-        double z_lim[2] = {0.3, 2};
+        double z_lim[2] = {0.5, 2};
     }_SafeBox;
 
 };
