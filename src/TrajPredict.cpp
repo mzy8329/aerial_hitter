@@ -165,7 +165,16 @@ bool TrajPredict::predictTraj_hit(int index_trajPredict, Eigen::Vector3d point_t
 Eigen::Vector3d TrajPredict::collisionModel(Eigen::Vector3d vel_before, Eigen::Vector3d vel_after)
 {
     Eigen::Vector3d n = (vel_before - vel_after)/(vel_before - vel_after).norm();
-    double Vb = vel_before.transpose()*n - 1/(1+_beta)*(vel_before - vel_after).norm();
+    // double Vb = vel_before.transpose()*n - 1/(1+_beta)*(vel_before - vel_after).norm();
+    double Vb = 0;
+    if(vel_before.transpose()*n > 0)
+    {
+        Vb = vel_before.transpose()*n - 1/(1+_beta)*(vel_before-vel_after).norm();
+    }
+    else
+    {
+        Vb = -vel_before.transpose()*n - 1/(1+_beta)*(vel_before-vel_after).norm();
+    }
     return Vb*n;
 }
 

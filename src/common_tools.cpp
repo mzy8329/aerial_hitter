@@ -197,8 +197,8 @@ namespace common_tools
         
         for(double t = dt; t <= T/2.0; t += dt)
         {
-            pt_temp[0] = x_temp + v_temp*t - 1/2.0*a1*dt*dt;
-            pt_temp[1] = v_temp - a1*t;
+            pt_temp[0] = x_temp + v_temp*t - 1/2.0*a2*t*t;
+            pt_temp[1] = v_temp - a2*t;
             pt_temp[2] = t_temp + t;
             traj_output.push_back(pt_temp);
         }

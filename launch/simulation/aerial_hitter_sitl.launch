@@ -51,8 +51,11 @@
 
   <!-- <node name="take_off" pkg="aerial_hitter" type="take_off" output="screen" /> -->
 
+  <rosparam command="load" file="$(find aerial_hitter)/param/sim_param.yaml" />
+
+
   <node name="get_gazebo_pose" pkg="aerial_hitter" type="get_gazebo_pose" output="screen" />
-  <node name="aerial_hitter_main_ctrl" pkg="aerial_hitter" type="aerial_hitter_main_ctrl" output="screen" />
+  <node name="aerial_hitter_main_ctrl_sim" pkg="aerial_hitter" type="aerial_hitter_main_ctrl_sim" output="screen" />
   
   <include file="$(find aerial_hitter)/launch/simulation/throw_ball.launch" />
 
@@ -62,10 +65,6 @@
   <node pkg="tf" type="static_transform_publisher" name="trajHit2map" args="0 0 0 0 0 0  /map /traj_hit 10" />
   <node pkg="tf" type="static_transform_publisher" name="trajHitPoint2map" args="0 0 0 0 0 0  /map /traj_hitPoint 10" />
 
-
-
-
-  <rosparam command="load" file="$(find aerial_hitter)/param/traj_prediction/param.yaml" />
 
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find aerial_hitter)/rviz/rviz.rviz"/>
 

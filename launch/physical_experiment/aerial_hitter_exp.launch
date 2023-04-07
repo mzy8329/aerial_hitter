@@ -1,0 +1,23 @@
+<launch>
+  <!-- MAVROS -->
+  <include file="$(find mavros)/launch/px4.launch">
+      <!-- GCS link is provided by SITL -->
+      <arg name="gcs_url" value=""/>
+  </include>
+
+  <!-- <node name="take_off" pkg="aerial_hitter" type="take_off" output="screen" /> -->
+
+  <rosparam command="load" file="$(find aerial_hitter)/param/exp305_param.yaml" />
+
+  <node name="aerial_hitter_main_ctrl_exp" pkg="aerial_hitter" type="aerial_hitter_main_ctrl_exp" output="screen" />
+  
+
+
+  <node pkg="tf" type="static_transform_publisher" name="trajView2map" args="0 0 0 0 0 0  /map /traj_view 10" />
+  <node pkg="tf" type="static_transform_publisher" name="trajPredict2map" args="0 0 0 0 0 0  /map /traj_predict 10" />
+  <node pkg="tf" type="static_transform_publisher" name="trajHit2map" args="0 0 0 0 0 0  /map /traj_hit 10" />
+  <node pkg="tf" type="static_transform_publisher" name="trajHitPoint2map" args="0 0 0 0 0 0  /map /traj_hitPoint 10" />
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find aerial_hitter)/rviz/rviz.rviz"/>
+
+</launch>

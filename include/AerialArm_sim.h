@@ -1,5 +1,5 @@
-#ifndef AERIALARM_H
-#define AERIALARM_H
+#ifndef AERIALARM_SIM_H
+#define AERIALARM_SIM_H
 
 
 #include <ros/ros.h>
@@ -17,12 +17,12 @@ double Arm_VEL_SET[2] = {1.2, 1.2};
 
 
 
-class AerialArm
+class AerialArm_sim
 {
 public:
-    AerialArm(){;;};
-    AerialArm(ros::NodeHandle nh);
-    ~AerialArm(){};
+    AerialArm_sim(){;;};
+    AerialArm_sim(ros::NodeHandle nh);
+    ~AerialArm_sim(){};
 
     void init(ros::NodeHandle nh, double ctrl_freq);
 
@@ -33,7 +33,7 @@ public:
 
 
     bool GetSet(double pos_0_s = 0, double pos_1_s = 0);
-    bool toZero();
+    bool toZero(double pos_0_s, double pos_1_s);
 
     void ctrlArm(double pos_0, double pos_1);
     

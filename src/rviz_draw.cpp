@@ -177,9 +177,9 @@ namespace rviz_draw
         visual.color.g = colar[2];
         visual.color.b = colar[3];
 
-        visual.scale.x = 0.02;
-        visual.scale.y = 0.02;
-        visual.scale.z = 0.02;
+        visual.scale.x = 0.05;
+        visual.scale.y = 0.05;
+        visual.scale.z = 0.05;
 
 
         visual.pose.position.x = point[0];

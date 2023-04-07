@@ -35,11 +35,11 @@ typedef enum{
 }UAV_model_e;
 
 
-class UAV
+class sim_uav_base
 {
 public:
-    UAV(ros::NodeHandle nh, double ctrl_period = 50, double UAV_vel = 2.0);
-    ~UAV(){;;}
+    sim_uav_base(ros::NodeHandle nh, double ctrl_period = 50, double UAV_vel = 2.0);
+    ~sim_uav_base(){;;}
 
     UAV_model_e _mode;
 
@@ -49,8 +49,6 @@ public:
     void ballPoseVrpnCallBack(const geometry_msgs::PoseStampedConstPtr &body_msg);
     void ballPoseGazeboCallBack(const nav_msgs::OdometryConstPtr &body_msg);
 
-
-    void setArmParam(double* arm_length, double* arm_offset, Eigen::Vector3d axis2link, Eigen::Vector3d arm2base, double* arm_start, double* arm_end, double* arm_time_pass);
     void initParam(ros::NodeHandle nh);
     
     void takeOff();
@@ -93,28 +91,28 @@ private:
     geometry_msgs::PoseStamped _targetPoint;
     geometry_msgs::PoseStamped _currentPose;
 
-
     double _ctrl_rate;
     double _UAV_Vel;
-
-    AerialArm _Arm;
-    double _arm_length[2];
-    double _arm_offset[2];
-    double _arm_start[2];
-    double _arm_end[2];
-    double _arm_time_pass[2];
-    double _arm_hit_pos[2];
-    std::vector<Eigen::Vector3d> _arm_pos_target[2];
-    bool _isSet;
-
-    Eigen::Vector3d _axis2link;
-    Eigen::Vector3d _arm2base;
 
     Eigen::VectorXd _base_pose;
     Eigen::VectorXd _hit_pose;
     Eigen::Vector4d _hit_pose_temp;
+    Eigen::Vector3d _point_target = {1.0, 0.2, 0};
 
-    
+    Eigen::Vector3d _axis2link = {-0.00732, 0, -0.04};
+    Eigen::Vector3d _arm2base = {0, 0, -0.012};
+
+    struct
+    {
+        AerialArm Arm;
+        double arm_length[2] = {0.106, 0.160};
+        double arm_offset[2] = {-2.6374, 0};
+        double arm_start[2] = {-2.3, -1.8};
+        double arm_end[2] = {-0.3, 0};
+        double arm_hit_pos[2];
+        std::vector<Eigen::Vector3d> arm_pos_target[2];
+        bool isSet;
+    }_Arm;
 
     struct
     {
@@ -128,8 +126,6 @@ private:
 
         TrajPredict trajPredict;
     }_Predict;
-
-    Eigen::Vector3d _point_target = {1.0, 0.2, 0};
 
     struct
     {
@@ -147,11 +143,6 @@ private:
         double y_lim[2] = {-2, 2};
         double z_lim[2] = {0.5, 2};
     }_SafeBox;
-
 };
-
-
-
-
 
 #endif

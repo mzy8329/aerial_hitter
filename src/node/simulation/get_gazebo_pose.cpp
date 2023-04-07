@@ -54,9 +54,9 @@ int main(int argc, char** argv)
     ros::NodeHandle nh;
     ros::Rate loop_rate(50);
 
-    ros::Publisher UAV_pos_pub = nh.advertise<geometry_msgs::PoseStamped>("/UAV/pose", 1);
-    arm_0_pos_pub = nh.advertise<std_msgs::Float32>("/AerialArm/arm_0_joint/pose", 1);
-    arm_1_pos_pub = nh.advertise<std_msgs::Float32>("/AerialArm/arm_1_joint/pose", 1);
+    ros::Publisher UAV_pos_pub = nh.advertise<geometry_msgs::PoseStamped>("/UAV_sim/pose", 1);
+    arm_0_pos_pub = nh.advertise<std_msgs::Float32>("/AerialArm_sim/arm_0_joint/pose", 1);
+    arm_1_pos_pub = nh.advertise<std_msgs::Float32>("/AerialArm_sim/arm_1_joint/pose", 1);
     ros::ServiceClient UAV_pos_client = nh.serviceClient<gazebo_msgs::GetLinkState>(
         "/gazebo/get_link_state"
     );
