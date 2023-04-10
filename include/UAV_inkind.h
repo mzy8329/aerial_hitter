@@ -25,7 +25,7 @@
 #include "rviz_draw.h"
 
 
-#define FLY 0
+#define FLY 1
 
 typedef enum{
     wait,

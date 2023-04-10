@@ -6,14 +6,14 @@ traj_prediction/pre_time: 2.0
 traj_prediction/pre_size: 16
 traj_prediction/beta: 0.1
 
-hover/pose_x: 0
-hover/pose_y: 0
-hover/pose_z: 1.0
+hover/pose_x: -1
+hover/pose_y: 1
+hover/pose_z: 1.5
 
-safe/x_max: 1
-safe/x_min: -1
-safe/y_max: 1
-safe/y_min: -1
+safe/x_max: 0
+safe/x_min: -2
+safe/y_max: 2
+safe/y_min: 0
 safe/z_max: 2
 safe/z_min: 0.5
 

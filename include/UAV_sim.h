@@ -111,7 +111,7 @@ private:
     Eigen::Vector3d _point_target;
 
     Eigen::Vector3d _axis2link = {-0.00732, 0, -0.04};
-    Eigen::Vector3d _arm2base = {0, 0, -0.012};
+    Eigen::Vector3d _arm2base = {0, 0, -0.15};
 
     double _arm_ctrl_ratio = 1.5;
     double _move_ctrl_ratio = 2.0;
