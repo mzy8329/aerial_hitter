@@ -81,3 +81,12 @@ target_link_libraries(throw_ball AerialArm_sim ${catkin_LIBRARIES})
 
 add_executable(aerial_hitter_main_ctrl_sim src/node/simulation/aerial_hitter_main_ctrl_sim.cpp)
 target_link_libraries(aerial_hitter_main_ctrl_sim AerialArm_sim UAV_sim ${catkin_LIBRARIES})
+
+add_executable(aerial_hitter_main_ctrl_exp src/node/physical_experiment/aerial_hitter_main_ctrl_exp.cpp)
+target_link_libraries(aerial_hitter_main_ctrl_exp AerialArm_inkind UAV_inkind ${catkin_LIBRARIES})
+
+add_executable(cur_offset src/node/physical_experiment/cur_offset.cpp)
+target_link_libraries(cur_offset ${catkin_LIBRARIES})
+
+add_executable(pos_offset src/node/physical_experiment/pos_offset.cpp)
+target_link_libraries(pos_offset ${catkin_LIBRARIES})

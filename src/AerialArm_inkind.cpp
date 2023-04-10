@@ -29,10 +29,11 @@ void AerialArm_inkind::init(ros::NodeHandle nh, double ctrl_freq)
 
 bool AerialArm_inkind::GetSet()
 {
-    ctrlArm(Arm_POS_SET[0]*2.0, Arm_POS_SET[1]*1.5);
-    if(abs(_motor[0].angle_fdb-Arm_POS_SET[0])<0.1
-    && abs(_motor[1].angle_fdb-Arm_POS_SET[1])<0.1)
+    ctrlArm(Arm_POS_SET[0]*-2.0, Arm_POS_SET[1]*-1.5);
+    if(abs(_motor[0].angle_fdb*3.14/180.0-Arm_POS_SET[0]*-2.0)<0.1
+    && abs(_motor[1].angle_fdb*3.14/180.0-Arm_POS_SET[1]*-1.5)<0.1)
     {
+        std::cout<<"------------Set Over--------------"<<std::endl;
         return true;
     }
     return false;

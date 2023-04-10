@@ -20,7 +20,8 @@
       #- FirstTracker
       #- SecondTracker
     </rosparam>
-    <remap from="/vrpn_client_node/RigidBody1/pose" to="/mavros/vision_pose/pose"/>
+    <remap from="/vrpn_client_node/AH/pose" to="/mavros/vision_pose/pose"/>
   </node>
+
 
 </launch>
