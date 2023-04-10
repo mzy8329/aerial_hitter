@@ -29,9 +29,9 @@ void AerialArm_inkind::init(ros::NodeHandle nh, double ctrl_freq)
 
 bool AerialArm_inkind::GetSet()
 {
-    ctrlArm(Arm_POS_SET[0], Arm_POS_SET[1]);
-    if(abs(_motor[0].angle_fdb-Arm_POS_SET[0])<5
-    && abs(_motor[1].angle_fdb-Arm_POS_SET[1])<5)
+    ctrlArm(Arm_POS_SET[0]*2.0, Arm_POS_SET[1]*1.5);
+    if(abs(_motor[0].angle_fdb-Arm_POS_SET[0])<0.1
+    && abs(_motor[1].angle_fdb-Arm_POS_SET[1])<0.1)
     {
         return true;
     }
@@ -49,18 +49,24 @@ bool AerialArm_inkind::toZero()
     return false;
 }
 
+
+/*
+    input: angle*resolution 弧度
+*/
 void AerialArm_inkind::ctrlArm(double pos_0, double pos_1)
 {
-    motor_serial::motor_ctrl ctrl_data[2];
-    for(int i = 0; i < 2; i++)
-    {
-        ctrl_data[i].id = _motor[i].id;
-        ctrl_data[i].angle_ref = pos_0;
-        ctrl_data[i].rpm_ref = 0;
-        ctrl_data[i].current_ref = 0;
+    motor_serial::motor_ctrl ctrl_data;
+    ctrl_data.id = _motor[0].id;
+    ctrl_data.angle_ref = pos_0*180/3.14;
+    ctrl_data.rpm_ref = 0;
+    ctrl_data.current_ref = 0;
+    _ctrlData_pub.publish(ctrl_data);
 
-        _ctrlData_pub.publish(ctrl_data[i]);
-    }
+    ctrl_data.id = _motor[1].id;
+    ctrl_data.angle_ref = pos_1*180/3.14;
+    ctrl_data.rpm_ref = 0;
+    ctrl_data.current_ref = 0;
+    _ctrlData_pub.publish(ctrl_data);
 
     ros::spinOnce();
 }

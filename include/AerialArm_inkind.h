@@ -14,7 +14,7 @@
 #define SIGN(x) (x>0 ? 1:(x<0 ? -1:0))
 
 
-double Arm_POS_SET[2] = {40, -150};
+double Arm_POS_SET[2] = {0.3, -1.8};
 
 
 class AerialArm_inkind

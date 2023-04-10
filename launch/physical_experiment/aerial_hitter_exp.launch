@@ -1,11 +1,7 @@
 <launch>
   <!-- MAVROS -->
-  <include file="$(find mavros)/launch/px4.launch">
-      <!-- GCS link is provided by SITL -->
-      <arg name="gcs_url" value=""/>
-  </include>
+  <include file="$(find mavros)/launch/px4.launch"/>
 
-  <!-- <node name="take_off" pkg="aerial_hitter" type="take_off" output="screen" /> -->
 
   <rosparam command="load" file="$(find aerial_hitter)/param/exp305_param.yaml" />
 

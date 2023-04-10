@@ -15,7 +15,7 @@ UAV_inkind::UAV_inkind(ros::NodeHandle nh, double ctrl_freq, double UAV_vel)
     
     _state_sub = nh.subscribe("/mavros/state", 10, &UAV_inkind::state_Callback, this); 
     _current_pose_sub = nh.subscribe("/mavros/local_position/pose", 1, &UAV_inkind::currentPose_Callback, this);
-    _ballPoseVrpn_sub = nh.subscribe("/vrpn_client_node/RigidBody3/pose", 10, &UAV_inkind::ballPoseVrpnCallBack, this);
+    _ballPoseVrpn_sub = nh.subscribe("/vrpn_client_node/Ball/pose", 10, &UAV_inkind::ballPoseVrpnCallBack, this);
 
 #if FLY
     _local_pose_pub = nh.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local", 1);
@@ -550,7 +550,7 @@ void UAV_inkind::Hit()
             _Arm.arm_pos_target[1].erase(_Arm.arm_pos_target[1].begin());
         }
         // std::cout << pos[0] << " " << pos[1] << std::endl;
-        _Arm.Arm.ctrlArm(pos[0], pos[1]);
+        _Arm.Arm.ctrlArm(pos[0]*_Arm.arm_resolution[0], pos[1]*_Arm.arm_resolution[1]);
     }
     
 

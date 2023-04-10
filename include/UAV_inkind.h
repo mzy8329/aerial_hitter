@@ -123,10 +123,10 @@ private:
     {
         AerialArm_inkind Arm;
         double arm_length[2] = {0.106, 0.190};
-        double arm_offset[2] = {-150, 0};
-        double arm_start[2] = {-130, -100};
-        double arm_end[2] = {-20, 0};
-        double arm_resolution[2] = {-2, 1.5};
+        double arm_offset[2] = {-2.6374, 0};
+        double arm_start[2] = {-2.3, -1.8};
+        double arm_end[2] = {-0.3, 0};
+        double arm_resolution[2] = {2, 1.5};
         double arm_hit_pos[2];
         std::vector<Eigen::Vector3d> arm_pos_target[2];
         bool isSet;
