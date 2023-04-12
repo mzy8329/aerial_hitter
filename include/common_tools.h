@@ -6,7 +6,16 @@
 
 #include <iostream>
 #include <fstream>
+#include <chrono>
+#include <ctime>
+#include <string>
 
+
+typedef enum
+{
+    file_new,
+    file_add
+}fWrite_mode_e;
 
 namespace common_tools
 {
@@ -20,8 +29,11 @@ namespace common_tools
     std::vector<Eigen::Vector3d> triangleProfile(Eigen::Vector3d pt_start, Eigen::Vector3d pt_end, double dt);
 
 
+    void writeFile(char* name, std::vector<Eigen::Vector2d> data, fWrite_mode_e mode);
+    void writeFile(char* name, std::vector<Eigen::Vector3d> data, fWrite_mode_e mode);
+    void writeFile(char* name, std::vector<Eigen::Vector4d> data, fWrite_mode_e mode);
+    void writeFile(char* name, Eigen::VectorXd data, fWrite_mode_e mode);
 
-    void writeFile(char* name, std::vector<Eigen::Vector3d> data);
 
 } // namespace common_tools
 

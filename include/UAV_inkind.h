@@ -100,6 +100,7 @@ private:
     mavros_msgs::State _current_state;
     trajectory_msgs::MultiDOFJointTrajectory _targetPose;
     std::vector<Eigen::Vector3d> _targetTraj_xyz[3];
+    std::vector<Eigen::Vector3d> _acctualTraj;
     geometry_msgs::PoseStamped _targetPoint;
     geometry_msgs::PoseStamped _currentPose;
 
@@ -113,22 +114,25 @@ private:
     Eigen::Vector3d _point_target;
 
     Eigen::Vector3d _axis2link = {-0.00732, 0, -0.04};
-    Eigen::Vector3d _arm2base = {0, 0, -0.012};
+    Eigen::Vector3d _arm2base = {0, 0, -0.12};
 
     double _arm_ctrl_ratio = 1.5;
     double _move_ctrl_ratio = 2.0;
     double _hit_ctrl_ratio = 2.0;
+    double _vel_ratio = 1.0;
+
 
     struct
     {
         AerialArm_inkind Arm;
-        double arm_length[2] = {0.106, 0.190};
+        double arm_length[2] = {0.106, 0.160};
         double arm_offset[2] = {-2.6374, 0};
         double arm_start[2] = {-2.3, -1.8};
         double arm_end[2] = {-0.3, 0};
         double arm_resolution[2] = {-2.0, -1.5};
         double arm_hit_pos[2];
         std::vector<Eigen::Vector3d> arm_pos_target[2];
+        std::vector<Eigen::Vector2d> arm_pos_acctual;
         bool isSet;
     }_Arm;
 

@@ -20,7 +20,7 @@ UAV_sim::UAV_sim(ros::NodeHandle nh, double ctrl_freq, double UAV_vel)
     _local_pose_pub = nh.advertise<geometry_msgs::PoseStamped>("/mavros/setpoint_position/local", 1);
     _local_traj_pub = nh.advertise<trajectory_msgs::MultiDOFJointTrajectory>("/mavros/setpoint_trajectory/local", 1);
     _rviz_marker_pub = nh.advertise<visualization_msgs::Marker>("/traj_view", 1);
-    _hitPoint_pub = nh.advertise<nav_msgs::Odometry>("/UAV_sim/hitPoint", 1);
+    _hitPoint_pub = nh.advertise<nav_msgs::Odometry>("/UAV_sim/hitPoint", 10);
 
     _hitingAllow_service = nh.advertiseService("/UAV_sim/hitingAllow", &UAV_sim::hitingAllow_Callback, this);
 
@@ -147,6 +147,7 @@ void UAV_sim::initParam(ros::NodeHandle nh)
     nh.getParam("/ctrl/arm_ratio", _arm_ctrl_ratio);
     nh.getParam("/ctrl/move_ratio", _move_ctrl_ratio);
     nh.getParam("/ctrl/hit_ratio", _hit_ctrl_ratio);
+    nh.getParam("/ctrl/vel_ratio", _vel_ratio);
     nh.getParam("/ctrl/UAV_vel", _UAV_Vel);
 
 
@@ -245,6 +246,7 @@ void UAV_sim::Move()
         _Rviz.mark = rviz_draw::draw(traj_predict, _Rviz.colar_traj, "traj_predict");
         _rviz_marker_pub.publish(_Rviz.mark);
 
+
         // 计算临时击球点
         int k = 0;
         double dist_min = 1000000000;
@@ -273,20 +275,16 @@ void UAV_sim::Move()
         if((hit_pose_temp-pose_now).norm() < (traj_predict[k][3]-ros::Time::now().toSec())*_UAV_Vel
         && _Predict.trajPredict.predictTraj_hit(k, _point_target)
         && checkSafeBox(traj_predict[k]))
-        {
-            _Rviz.mark = rviz_draw::draw(_Predict.trajPredict.getTraj_hit(), _Rviz.colar_hit, "traj_hit");
-            _rviz_marker_pub.publish(_Rviz.mark);
-            
+        {            
             Eigen::VectorXd hitPoint = _Predict.trajPredict.getPoint_hit();
-            _Rviz.mark = rviz_draw::draw(hitPoint, _Rviz.colar_hitPoint, "traj_hitPoint");
-            _rviz_marker_pub.publish(_Rviz.mark);
+            if(!isnan(hitPoint[3]) && !isnan(hitPoint[4]) && !isnan(hitPoint[5]))
+            {
+                _Rviz.mark = rviz_draw::draw(_Predict.trajPredict.getTraj_hit(), _Rviz.colar_hit, "traj_hit");
+                _rviz_marker_pub.publish(_Rviz.mark);
+                _Rviz.mark = rviz_draw::draw(hitPoint, _Rviz.colar_hitPoint, "traj_hitPoint");
+                _rviz_marker_pub.publish(_Rviz.mark);
 
-            if(isnan(hitPoint[3]) || isnan(hitPoint[4]) || isnan(hitPoint[5]))
-            {
-                ;;
-            }
-            else
-            {
+
                 // 规划无人机轨迹
                 _hit_pose = hitPoint;
                 hit2base();
@@ -322,14 +320,12 @@ void UAV_sim::Move()
                         }
                     }
                     pt_s[2] = ros::Time::now().toSec();
-                    pt_e = {_base_pose[i], 0, ros::Time::now().toSec()+0.9*(_hit_pose_temp[3]-ros::Time::now().toSec())};
+                    pt_e = {_base_pose[i], 0, ros::Time::now().toSec()+0.5*(_hit_pose_temp[3]-ros::Time::now().toSec())};
 
                     _targetTraj_xyz[i] = common_tools::triangleProfile(pt_s, pt_e, _hit_ctrl_ratio/_ctrl_rate);
                     
+                    
                 }
-                // char name[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/arm1.txt";
-                // common_tools::writeFile(name, _targetTraj_xyz[0]);
-
                 // 求解无人机状态
                 
 
@@ -354,7 +350,24 @@ void UAV_sim::Move()
                     Eigen::Vector3d P_p = {_Arm.arm_hit_pos[i], vel_arm[i], _hit_pose[6]-t_2};
                     Eigen::Vector3d P_e = {_Arm.arm_end[i], 0, _hit_pose[6]};
                     _Arm.arm_pos_target[i] =  common_tools::triangleProfile(P_s, P_e, P_p, _arm_ctrl_ratio/_ctrl_rate);
-                }   
+                }
+                
+
+                char name_u_x[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/sim/uav_plan_x";
+                common_tools::writeFile(name_u_x, _targetTraj_xyz[0], file_new);
+                char name_u_y[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/sim/uav_plan_y";
+                common_tools::writeFile(name_u_y, _targetTraj_xyz[1], file_new);
+                char name_u_z[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/sim/uav_plan_z";
+                common_tools::writeFile(name_u_z, _targetTraj_xyz[2], file_new);
+
+                char name_a_0[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/sim/arm_plan_0";
+                common_tools::writeFile(name_a_0, _Arm.arm_pos_target[0], file_new);
+                char name_a_1[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/sim/arm_plan_1";
+                common_tools::writeFile(name_a_1, _Arm.arm_pos_target[1], file_new);
+                
+                _acctualTraj.clear();
+                _Arm.arm_pos_acctual.clear();
+
                 _mode = hit;
             }            
         }
@@ -393,7 +406,7 @@ void UAV_sim::Move()
                 }
                 pt_s[2] = ros::Time::now().toSec();
 
-                pt_e = {pose_now[i]+_hit_pose_temp[i]/2.0, 0, ros::Time::now().toSec()+0.5*(_hit_pose_temp[3]-ros::Time::now().toSec())};
+                pt_e = {(pose_now[i]+_hit_pose_temp[i])/2.0, 0, ros::Time::now().toSec()+0.5*(_hit_pose_temp[3]-ros::Time::now().toSec())};
 
                 _targetTraj_xyz[i] = common_tools::triangleProfile(pt_s, pt_e, _move_ctrl_ratio/_ctrl_rate);
             }
@@ -410,13 +423,10 @@ void UAV_sim::Move()
         geometry_msgs::Transform temp_pos;
         geometry_msgs::Twist temp_vel;
 
-        _targetTraj_xyz[0][0] = pt2SafeBox(_targetTraj_xyz[0][0]);
-        _targetTraj_xyz[1][0] = pt2SafeBox(_targetTraj_xyz[1][0]);
-        _targetTraj_xyz[2][0] = pt2SafeBox(_targetTraj_xyz[2][0]);
-
-        temp_pos.translation.x = _targetTraj_xyz[0][0][0];
-        temp_pos.translation.y = _targetTraj_xyz[1][0][0];
-        temp_pos.translation.z = _targetTraj_xyz[2][0][0];
+        Eigen::Vector3d safeTarget = pt2SafeBox(Eigen::Vector3d(_targetTraj_xyz[0][0][0],_targetTraj_xyz[1][0][0],_targetTraj_xyz[2][0][0]));
+        temp_pos.translation.x = safeTarget[0];
+        temp_pos.translation.y = safeTarget[1];
+        temp_pos.translation.z = safeTarget[2];
 
         tf::Quaternion q = tf::createQuaternionFromYaw(0);
         temp_pos.rotation.x = q.getX();
@@ -424,9 +434,9 @@ void UAV_sim::Move()
         temp_pos.rotation.z = q.getZ();
         temp_pos.rotation.w = q.getW();
 
-        temp_vel.linear.x = _targetTraj_xyz[0][0][1];
-        temp_vel.linear.y = _targetTraj_xyz[1][0][1];
-        temp_vel.linear.z = _targetTraj_xyz[2][0][1];
+        temp_vel.linear.x = _targetTraj_xyz[0][0][1]*_vel_ratio;
+        temp_vel.linear.y = _targetTraj_xyz[1][0][1]*_vel_ratio;
+        temp_vel.linear.z = _targetTraj_xyz[2][0][1]*_vel_ratio;
 
         temp_point.transforms.clear();
         temp_point.velocities.clear();
@@ -461,8 +471,14 @@ void UAV_sim::Move()
 }
 
 void UAV_sim::Hit()
-{    
-    if(!_targetTraj_xyz[0].empty())
+{   
+    _acctualTraj.push_back(Eigen::Vector3d(_currentPose.pose.position.x,
+                                                  _currentPose.pose.position.y,
+                                                  _currentPose.pose.position.z));
+    _Arm.arm_pos_acctual.push_back(Eigen::Vector2d(_Arm.Arm._arm_current_pos[0]+_Arm.arm_offset[0], _Arm.Arm._arm_current_pos[1]+_Arm.arm_offset[1]));
+
+    if(!_targetTraj_xyz[0].empty()
+    && checkSafeBox(Eigen::Vector3d(_targetTraj_xyz[0][0][0], _targetTraj_xyz[1][0][0], _targetTraj_xyz[2][0][0])))
     {
         _targetPose.header.stamp = ros::Time::now();
 
@@ -480,9 +496,9 @@ void UAV_sim::Hit()
         temp_pos.rotation.z = q.getZ();
         temp_pos.rotation.w = q.getW();
 
-        temp_vel.linear.x = _targetTraj_xyz[0][0][1];
-        temp_vel.linear.y = _targetTraj_xyz[1][0][1];
-        temp_vel.linear.z = _targetTraj_xyz[2][0][1];
+        temp_vel.linear.x = _targetTraj_xyz[0][0][1]*_vel_ratio;
+        temp_vel.linear.y = _targetTraj_xyz[1][0][1]*_vel_ratio;
+        temp_vel.linear.z = _targetTraj_xyz[2][0][1]*_vel_ratio;
 
         temp_point.transforms.clear();
         temp_point.velocities.clear();
@@ -567,6 +583,12 @@ void UAV_sim::Hit()
         if(ros::Time::now().toSec()-_hit_pose[6]>2)
         {
             _hitingAllow = false;
+
+            char name_u_a[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/sim/uav_traj";
+            common_tools::writeFile(name_u_a, _acctualTraj, file_new);
+            char name_a_a[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/sim/arm_traj";
+            common_tools::writeFile(name_a_a, _Arm.arm_pos_acctual, file_new);
+
             _mode = hover;
         }
     }
