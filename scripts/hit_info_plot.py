@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import time
 import numpy as np
 
-sim = 1
+sim = 0
 
 if sim:
     origin_path  = '/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/sim/'

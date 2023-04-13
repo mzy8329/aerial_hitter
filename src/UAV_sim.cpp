@@ -353,7 +353,11 @@ void UAV_sim::Move()
 
                 // 创建文件夹 以当前时间命名
                 std::time_t now_c = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-                std::strcpy(_DebugInfo.folder_name, std::ctime(&now_c));
+                std::string time_now(std::ctime(&now_c));
+                std::replace(time_now.begin(), time_now.end(), ':', '-');
+                std::replace(time_now.begin(), time_now.end(), ' ', '-');
+                std::strcpy(_DebugInfo.folder_name, time_now.c_str());
+
                 strcpy(_DebugInfo.file_name, _DebugInfo.origin_folder);
                 std::strcat(_DebugInfo.file_name, _DebugInfo.folder_name);
                 mkdir(_DebugInfo.file_name, 0777);

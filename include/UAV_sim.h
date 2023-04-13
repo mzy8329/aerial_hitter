@@ -17,6 +17,7 @@
 
 #include <eigen3/Eigen/Eigen>
 #include <algorithm>
+#include <string>
 
 
 #include "common_tools.h"
