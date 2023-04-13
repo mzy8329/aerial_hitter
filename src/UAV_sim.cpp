@@ -48,7 +48,6 @@ UAV_sim::UAV_sim(ros::NodeHandle nh, double ctrl_freq, double UAV_vel)
         _Arm.arm_pos_target[i].push_back(pt_temp);
     }
 
-
     _Predict.trajPredict.init(_Predict.fit_len, _Predict.check_len, _Predict.freeFallCheck_err, _Predict.beta);
 }
 
@@ -255,7 +254,7 @@ void UAV_sim::Move()
         for(int i = 0; i < traj_predict.size(); i++)
         {
             pose_temp = {traj_predict[i][0], traj_predict[i][1], traj_predict[i][2]};
-            double dist = 0.4*abs(pose_now[0]-pose_temp[0]) + 0.4*abs(pose_now[1]-pose_temp[1]) + 0.2*abs(pose_now[0]-pose_temp[0]);
+            double dist = 0.45*abs(pose_now[0]-pose_temp[0]) + 0.45*abs(pose_now[1]-pose_temp[1]) + 0.1*abs(pose_now[0]-pose_temp[0]);
             if(dist < dist_min 
             && (_hit_pose_temp.isZero() || _hit_pose_temp[3] == 0 || (pose_temp-Eigen::Vector3d({_hit_pose_temp[0], _hit_pose_temp[1], _hit_pose_temp[2]})).norm()< 2.0)
             && pose_temp[2] > _SafeBox.z_lim[0]
@@ -351,22 +350,38 @@ void UAV_sim::Move()
                     Eigen::Vector3d P_e = {_Arm.arm_end[i], 0, _hit_pose[6]};
                     _Arm.arm_pos_target[i] =  common_tools::triangleProfile(P_s, P_e, P_p, _arm_ctrl_ratio/_ctrl_rate);
                 }
-                
 
-                char name_u_x[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/sim/uav_plan_x";
-                common_tools::writeFile(name_u_x, _targetTraj_xyz[0], file_new);
-                char name_u_y[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/sim/uav_plan_y";
-                common_tools::writeFile(name_u_y, _targetTraj_xyz[1], file_new);
-                char name_u_z[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/sim/uav_plan_z";
-                common_tools::writeFile(name_u_z, _targetTraj_xyz[2], file_new);
+                // 创建文件夹 以当前时间命名
+                std::time_t now_c = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+                std::strcpy(_DebugInfo.folder_name, std::ctime(&now_c));
+                strcpy(_DebugInfo.file_name, _DebugInfo.origin_folder);
+                std::strcat(_DebugInfo.file_name, _DebugInfo.folder_name);
+                mkdir(_DebugInfo.file_name, 0777);
+                _DebugInfo.uav_traj.clear();
+                _DebugInfo.arm_traj.clear();
 
-                char name_a_0[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/sim/arm_plan_0";
-                common_tools::writeFile(name_a_0, _Arm.arm_pos_target[0], file_new);
-                char name_a_1[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/sim/arm_plan_1";
-                common_tools::writeFile(name_a_1, _Arm.arm_pos_target[1], file_new);
+                // 输出飞机与臂规划轨迹
+                char file_name[150] = {""};
+                std::strcpy(file_name, _DebugInfo.file_name);
+                std::strcat(file_name, _DebugInfo.uav_plan_x_name);
+                common_tools::writeFile(file_name, _targetTraj_xyz[0], file_new);
                 
-                _acctualTraj.clear();
-                _Arm.arm_pos_acctual.clear();
+                std::strcpy(file_name, _DebugInfo.file_name);
+                std::strcat(file_name, _DebugInfo.uav_plan_y_name);
+                common_tools::writeFile(file_name, _targetTraj_xyz[1], file_new);
+
+                std::strcpy(file_name, _DebugInfo.file_name);
+                std::strcat(file_name, _DebugInfo.uav_plan_z_name);
+                common_tools::writeFile(file_name, _targetTraj_xyz[2], file_new);
+
+                std::strcpy(file_name, _DebugInfo.file_name);
+                std::strcat(file_name, _DebugInfo.arm_plan_0_name);
+                common_tools::writeFile(file_name, _Arm.arm_pos_target[0], file_new);
+
+                std::strcpy(file_name, _DebugInfo.file_name);
+                std::strcat(file_name, _DebugInfo.arm_plan_1_name);
+                common_tools::writeFile(file_name, _Arm.arm_pos_target[1], file_new);
+
 
                 _mode = hit;
             }            
@@ -472,10 +487,14 @@ void UAV_sim::Move()
 
 void UAV_sim::Hit()
 {   
-    _acctualTraj.push_back(Eigen::Vector3d(_currentPose.pose.position.x,
+    _DebugInfo.uav_traj.push_back(Eigen::Vector3d(_currentPose.pose.position.x,
                                                   _currentPose.pose.position.y,
                                                   _currentPose.pose.position.z));
-    _Arm.arm_pos_acctual.push_back(Eigen::Vector2d(_Arm.Arm._arm_current_pos[0]+_Arm.arm_offset[0], _Arm.Arm._arm_current_pos[1]+_Arm.arm_offset[1]));
+    if(ros::Time::now().toSec()>_Arm.arm_pos_target[0][0][2])
+    {
+        _DebugInfo.arm_traj.push_back(Eigen::Vector2d(_Arm.Arm._arm_current_pos[0]+_Arm.arm_offset[0], _Arm.Arm._arm_current_pos[1]+_Arm.arm_offset[1]));
+    }
+
 
     if(!_targetTraj_xyz[0].empty()
     && checkSafeBox(Eigen::Vector3d(_targetTraj_xyz[0][0][0], _targetTraj_xyz[1][0][0], _targetTraj_xyz[2][0][0])))
@@ -583,11 +602,15 @@ void UAV_sim::Hit()
         if(ros::Time::now().toSec()-_hit_pose[6]>2)
         {
             _hitingAllow = false;
+            char file_name[150] = {""};
+            std::strcpy(file_name, _DebugInfo.file_name);
+            std::strcat(file_name, _DebugInfo.uav_traj_name);
+            common_tools::writeFile(file_name, _DebugInfo.uav_traj, file_new);
 
-            char name_u_a[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/sim/uav_traj";
-            common_tools::writeFile(name_u_a, _acctualTraj, file_new);
-            char name_a_a[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/sim/arm_traj";
-            common_tools::writeFile(name_a_a, _Arm.arm_pos_acctual, file_new);
+            std::strcpy(file_name, _DebugInfo.file_name);
+            std::strcat(file_name, _DebugInfo.arm_traj_name);
+            common_tools::writeFile(file_name, _DebugInfo.arm_traj, file_new);
+
 
             _mode = hover;
         }

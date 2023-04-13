@@ -35,15 +35,15 @@ void arm1CallBack(const std_msgs::Float32ConstPtr &msg)
     temp.data = msg->data;
     arm_1_pos_pub.publish(temp);
 
-    static ros::Time time_last = ros::Time::now();
-    if(ros::Time::now().toSec()-time_last.toSec() > 0.01)
-    {
-        time_last = ros::Time::now();
+    // static ros::Time time_last = ros::Time::now();
+    // if(ros::Time::now().toSec()-time_last.toSec() > 0.01)
+    // {
+    //     time_last = ros::Time::now();
         
-        std_msgs::Float32 temp;
-        temp.data = msg->data;
-        arm_1_pos_pub.publish(temp);
-    }
+    //     std_msgs::Float32 temp;
+    //     temp.data = msg->data;
+    //     arm_1_pos_pub.publish(temp);
+    // }
 }
 
 

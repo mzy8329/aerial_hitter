@@ -206,21 +206,18 @@ namespace common_tools
         return traj_output;
     }
 
+    
+
     void writeFile(char* name, std::vector<Eigen::Vector2d> data, fWrite_mode_e mode)
     {//写入文件
-		std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
-        std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-        char file_name[150];
-        std::strcpy(file_name, (std::string(name)+"-"+std::ctime(&now_c)+".txt").c_str());
-
         std::ofstream outfile;      //创建文件
         if(mode == file_new)
         {
-            outfile.open(file_name,  std::ios::binary);
+            outfile.open(name,  std::ios::binary);
         }
         else
         {
-            outfile.open(file_name,  std::ios::app|std::ios::binary);
+            outfile.open(name,  std::ios::app|std::ios::binary);
         }
 
 		for(int i = 0; i<data.size(); i++)
@@ -234,19 +231,14 @@ namespace common_tools
 
     void writeFile(char* name, std::vector<Eigen::Vector3d> data, fWrite_mode_e mode)
     {//写入文件
-		std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
-        std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-        char file_name[150];
-        std::strcpy(file_name, (std::string(name)+"-"+std::ctime(&now_c)+".txt").c_str());
-
         std::ofstream outfile;      //创建文件
         if(mode == file_new)
         {
-            outfile.open(file_name,  std::ios::binary);
+            outfile.open(name,  std::ios::binary);
         }
         else
         {
-            outfile.open(file_name,  std::ios::app|std::ios::binary);
+            outfile.open(name,  std::ios::app|std::ios::binary);
         }
 
 		for(int i = 0; i<data.size(); i++)
@@ -261,19 +253,14 @@ namespace common_tools
 
     void writeFile(char* name, std::vector<Eigen::Vector4d> data, fWrite_mode_e mode)
     {//写入文件
-        std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
-        std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-        char file_name[150];
-        std::strcpy(file_name, (std::string(name)+"-"+std::ctime(&now_c)+".txt").c_str());
-
         std::ofstream outfile;      //创建文件
         if(mode == file_new)
         {
-            outfile.open(file_name,  std::ios::binary);
+            outfile.open(name,  std::ios::binary);
         }
         else
         {
-            outfile.open(file_name,  std::ios::app|std::ios::binary);
+            outfile.open(name,  std::ios::app|std::ios::binary);
         }
 
 		for(int i = 0; i<data.size(); i++)
@@ -289,19 +276,14 @@ namespace common_tools
 
     void writeFile(char* name, Eigen::VectorXd data, fWrite_mode_e mode)
     {//写入文件
-		std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
-        std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-        char file_name[150];
-        std::strcpy(file_name, (std::string(name)+"-"+std::ctime(&now_c)+".txt").c_str());
-
         std::ofstream outfile;      //创建文件
         if(mode == file_new)
         {
-            outfile.open(file_name,  std::ios::binary);
+            outfile.open(name,  std::ios::binary);
         }
         else
         {
-            outfile.open(file_name,  std::ios::app|std::ios::binary);
+            outfile.open(name,  std::ios::app|std::ios::binary);
         }
 
 		for(int i = 0; i<data.size(); i++)
@@ -311,5 +293,6 @@ namespace common_tools
         outfile << std::endl;//保存初始的时间、六个关节角度
 		outfile.close();
 	}
+
 
 } // namespace common_tools

@@ -12,7 +12,7 @@ bool throwBall(std_srvs::Trigger::Request &req,
     geometry_msgs::Wrench throw_force;
     throw_force.force.x = -0.035;
     throw_force.force.y = 0;
-    throw_force.force.z = 0.100;
+    throw_force.force.z = 0.110;
     for(int i = 0; i < 50; i++)
     {
         throw_pub.publish(throw_force);

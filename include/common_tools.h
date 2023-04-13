@@ -9,6 +9,7 @@
 #include <chrono>
 #include <ctime>
 #include <string>
+#include <sys/stat.h>
 
 
 typedef enum
@@ -33,6 +34,8 @@ namespace common_tools
     void writeFile(char* name, std::vector<Eigen::Vector3d> data, fWrite_mode_e mode);
     void writeFile(char* name, std::vector<Eigen::Vector4d> data, fWrite_mode_e mode);
     void writeFile(char* name, Eigen::VectorXd data, fWrite_mode_e mode);
+
+
 
 
 } // namespace common_tools

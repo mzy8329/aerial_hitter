@@ -100,7 +100,6 @@ private:
     mavros_msgs::State _current_state;
     trajectory_msgs::MultiDOFJointTrajectory _targetPose;
     std::vector<Eigen::Vector3d> _targetTraj_xyz[3];
-    std::vector<Eigen::Vector3d> _acctualTraj;
     geometry_msgs::PoseStamped _targetPoint;
     geometry_msgs::PoseStamped _currentPose;
 
@@ -126,13 +125,12 @@ private:
     {
         AerialArm_inkind Arm;
         double arm_length[2] = {0.106, 0.160};
-        double arm_offset[2] = {-2.6374, 0};
+        double arm_offset[2] = {-2.6374, 0.0};
         double arm_start[2] = {-2.3, -1.8};
         double arm_end[2] = {-0.3, 0};
         double arm_resolution[2] = {-2.0, -1.5};
         double arm_hit_pos[2];
         std::vector<Eigen::Vector3d> arm_pos_target[2];
-        std::vector<Eigen::Vector2d> arm_pos_acctual;
         bool isSet;
     }_Arm;
 
@@ -165,6 +163,27 @@ private:
         double y_lim[2];
         double z_lim[2];
     }_SafeBox;
+
+    struct
+    {
+        /* data */
+        const char* origin_folder = "/home/aerial-catcher/src/aerial_hitter/data/exp/";
+        char folder_name[50] = {""};
+        char file_name[150] = {""};
+
+        char uav_plan_x_name[20] = "/uav_plan_x.txt";
+        char uav_plan_y_name[20] = "/uav_plan_y.txt";
+        char uav_plan_z_name[20] = "/uav_plan_z.txt";
+        char arm_plan_0_name[20] = "/arm_plan_0.txt";
+        char arm_plan_1_name[20] = "/arm_plan_1.txt";
+
+        char uav_traj_name[20] = "/uav_traj.txt";
+        char arm_traj_name[20] = "/arm_traj.txt";
+        
+        std::vector<Eigen::Vector3d> uav_traj;
+        std::vector<Eigen::Vector2d> arm_traj;
+
+    }_DebugInfo;
 };
 
 #endif

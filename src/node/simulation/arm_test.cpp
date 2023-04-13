@@ -24,7 +24,7 @@ int main(int argc, char** argv)
     std::strcpy(file_name, (std::string(name)+"-"+std::ctime(&now_c)+".txt").c_str());
     std::cout<<file_name<<std::endl;
 
-    common_tools::writeFile(name, a, file_new);
+    common_tools::writeFile(name, a, file_add);
 
 
     return 0;

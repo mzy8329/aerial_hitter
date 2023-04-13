@@ -24,6 +24,6 @@ target_pt/z: 0
 ctrl/arm_ratio: 1.0
 ctrl/move_ratio: 1.0
 ctrl/hit_ratio: 1.0
-ctrl/vel_ratio: 1.5
+ctrl/vel_ratio: 1.0
 
-ctrl/UAV_vel: 1.5
+ctrl/UAV_vel: 1.0
