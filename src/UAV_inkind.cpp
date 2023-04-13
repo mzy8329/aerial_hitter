@@ -73,18 +73,12 @@ void UAV_inkind::targetPose_Callback(const trajectory_msgs::MultiDOFJointTraject
 
 void UAV_inkind::ballPoseVrpnCallBack(const geometry_msgs::PoseStampedConstPtr &body_msg)
 {
-    static int i_1 = 0;
-    static int i_2 = 0;
+    // static int i_1 = 0;
     Eigen::Vector4d point;
     point << body_msg->pose.position.x, body_msg->pose.position.y, body_msg->pose.position.z, body_msg->header.stamp.toSec();
 
-    if(i_2++ > 3)
-    {
-        _Rviz.mark = rviz_draw::draw(point, _Rviz.colar_pose, "traj_view", i_1++);
-        _rviz_marker_pub.publish(_Rviz.mark);
-
-        i_2 = 0;
-    }
+    // _Rviz.mark = rviz_draw::draw(point, _Rviz.colar_pose, "traj_view", i_1++);
+    // _rviz_marker_pub.publish(_Rviz.mark);
     
     _Predict.trajPredict.pushNewPoint(point);
 }
