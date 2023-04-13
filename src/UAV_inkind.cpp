@@ -375,6 +375,11 @@ void UAV_inkind::Move()
                 std::strcat(file_name, _DebugInfo.arm_plan_1_name);
                 common_tools::writeFile(file_name, _Arm.arm_pos_target[1], file_new);
 
+                std::strcpy(file_name, _DebugInfo.file_name);
+                std::strcat(file_name, _DebugInfo.hit_data);
+                common_tools::writeFile(file_name, _base_pose, file_add);
+                common_tools::writeFile(file_name, _hit_pose, file_add);
+
                 _mode = hit;
             }            
         }
@@ -481,12 +486,13 @@ void UAV_inkind::Move()
 
 void UAV_inkind::Hit()
 {    
-    _DebugInfo.uav_traj.push_back(Eigen::Vector3d(_currentPose.pose.position.x,
+    _DebugInfo.uav_traj.push_back(Eigen::Vector4d(_currentPose.pose.position.x,
                                                   _currentPose.pose.position.y,
-                                                  _currentPose.pose.position.z));
+                                                  _currentPose.pose.position.z,
+                                                  ros::Time::now().toSec()));
     if(ros::Time::now().toSec()>_Arm.arm_pos_target[0][0][2])
     {
-        _DebugInfo.arm_traj.push_back(Eigen::Vector2d(_Arm.Arm._motor[0].angle_fdb/_Arm.arm_resolution[0]*0.0174+_Arm.arm_offset[0], _Arm.Arm._motor[0].angle_fdb/_Arm.arm_resolution[1]*0.0174+_Arm.arm_offset[1]));
+        _DebugInfo.arm_traj.push_back(Eigen::Vector3d(_Arm.Arm._motor[0].angle_fdb/_Arm.arm_resolution[0]*0.0174+_Arm.arm_offset[0], _Arm.Arm._motor[0].angle_fdb/_Arm.arm_resolution[1]*0.0174+_Arm.arm_offset[1], ros::Time::now().toSec()));
     }
 
     if(!_targetTraj_xyz[0].empty()

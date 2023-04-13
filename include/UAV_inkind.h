@@ -179,9 +179,11 @@ private:
 
         char uav_traj_name[20] = "/uav_traj.txt";
         char arm_traj_name[20] = "/arm_traj.txt";
+
+        char hit_data[20] = "/hit_data.txt";
         
-        std::vector<Eigen::Vector3d> uav_traj;
-        std::vector<Eigen::Vector2d> arm_traj;
+        std::vector<Eigen::Vector4d> uav_traj;
+        std::vector<Eigen::Vector3d> arm_traj;
 
     }_DebugInfo;
 };
