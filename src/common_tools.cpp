@@ -206,7 +206,20 @@ namespace common_tools
         return traj_output;
     }
 
-    
+    const char* getTimenow()
+    {
+        std::time_t now_c = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+        static std::string time_now(std::ctime(&now_c));
+        std::replace(time_now.begin(), time_now.end(), ':', '-');
+        std::replace(time_now.begin(), time_now.end(), ' ', '-');
+        time_now.erase(remove(time_now.begin(), time_now.end(), '\n'), time_now.end());
+
+        // std::string* temp = new std::string(time_now.c_str());
+        // const char* c = temp->c_str();
+        // delete temp;
+
+        return time_now.c_str();
+    }
 
     void writeFile(char* name, std::vector<Eigen::Vector2d> data, fWrite_mode_e mode)
     {//写入文件
@@ -294,5 +307,20 @@ namespace common_tools
 		outfile.close();
 	}
 
+    void writeFile(char* name, std::string data, fWrite_mode_e mode)
+    {//写入文件
+        std::ofstream outfile;      //创建文件
+        if(mode == file_new)
+        {
+            outfile.open(name,  std::ios::binary);
+        }
+        else
+        {
+            outfile.open(name,  std::ios::app|std::ios::binary);
+        }
+
+        outfile << data << std::endl;
+		outfile.close();
+	}
 
 } // namespace common_tools

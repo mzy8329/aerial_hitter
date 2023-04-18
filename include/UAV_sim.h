@@ -94,8 +94,6 @@ private:
     ros::ServiceClient _arming_client;
     ros::ServiceClient _landing_client;
 
-
-
     mavros_msgs::State _current_state;
     trajectory_msgs::MultiDOFJointTrajectory _targetPose;
     std::vector<Eigen::Vector3d> _targetTraj_xyz[3];
@@ -130,6 +128,7 @@ private:
         double arm_hit_pos[2];
         std::vector<Eigen::Vector3d> arm_pos_target[2];
         bool isSet;
+        double time_ff = 0;
     }_Arm;
 
     struct
@@ -168,6 +167,7 @@ private:
         /* data */
         const char* origin_folder = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/sim/";
         char folder_name[50] = {""};
+        char subfolder_name[50] = {""};
         char file_name[150] = {""};
 
         char uav_plan_x_name[20] = "/uav_plan_x.txt";
@@ -179,10 +179,22 @@ private:
         char uav_traj_name[20] = "/uav_traj.txt";
         char arm_traj_name[20] = "/arm_traj.txt";
 
-        char hit_data[20] = "/hit_data.txt";
+        char uav_pose_all_name[20] = "/uav_pose_all.txt";
+        char ball_pose_all_name[20] = "/ball_pose_all.txt";
+        char arm_pose_all_name[20] = "/arm_pose_all.txt";
+
+        char hit_data_name[20] = "/hit_data.txt";
+        char time_data_name[20] = "/time_data.txt";
+        
+
         
         std::vector<Eigen::Vector4d> uav_traj;
         std::vector<Eigen::Vector3d> arm_traj;
+
+        std::vector<Eigen::Vector4d> uav_pose_all;
+        std::vector<Eigen::Vector3d> arm_pose_all;
+        std::vector<Eigen::Vector4d> ball_pose_all;
+
 
     }_DebugInfo;
     

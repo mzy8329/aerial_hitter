@@ -9,22 +9,16 @@
 
 int main(int argc, char** argv)
 {
-    std::vector<Eigen::Vector3d> a;
-    Eigen::Vector3d pt{0,1,1};
-    for(int i = 0; i < 10; i++)
-    {
-        a.push_back(pt);
-    }
+    std::time_t now_c = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+    std::string time_now(std::ctime(&now_c));
+    std::replace(time_now.begin(), time_now.end(), ':', '-');
+    std::replace(time_now.begin(), time_now.end(), ' ', '-');
+    time_now.erase(remove(time_now.begin(), time_now.end(), '\n'), time_now.end());
 
-    char name[] = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/sim/AAA";
 
-    std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
-    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-    char file_name[100];
-    std::strcpy(file_name, (std::string(name)+"-"+std::ctime(&now_c)+".txt").c_str());
-    std::cout<<file_name<<std::endl;
+    std::cout<<time_now.c_str()<<std::endl;
+    std::cout<<common_tools::getTimenow()<<std::endl;
 
-    common_tools::writeFile(name, a, file_add);
 
 
     return 0;

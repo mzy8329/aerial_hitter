@@ -132,6 +132,7 @@ private:
         double arm_resolution[2] = {-2.0, -1.5};
         double arm_hit_pos[2];
         std::vector<Eigen::Vector3d> arm_pos_target[2];
+        double time_ff = 0.25;
         bool isSet;
     }_Arm;
 
@@ -170,6 +171,7 @@ private:
         /* data */
         const char* origin_folder = "/home/aerial-catcher/src/aerial_hitter/data/exp/";
         char folder_name[50] = {""};
+        char subfolder_name[50] = {""};
         char file_name[150] = {""};
 
         char uav_plan_x_name[20] = "/uav_plan_x.txt";
@@ -181,10 +183,22 @@ private:
         char uav_traj_name[20] = "/uav_traj.txt";
         char arm_traj_name[20] = "/arm_traj.txt";
 
-        char hit_data[20] = "/hit_data.txt";
+        char uav_pose_all_name[20] = "/uav_pose_all.txt";
+        char ball_pose_all_name[20] = "/ball_pose_all.txt";
+        char arm_pose_all_name[20] = "/arm_pose_all.txt";
+
+        char hit_data_name[20] = "/hit_data.txt";
+        char time_data_name[20] = "/time_data.txt";
+        
+
         
         std::vector<Eigen::Vector4d> uav_traj;
         std::vector<Eigen::Vector3d> arm_traj;
+
+        std::vector<Eigen::Vector4d> uav_pose_all;
+        std::vector<Eigen::Vector3d> arm_pose_all;
+        std::vector<Eigen::Vector4d> ball_pose_all;
+
 
     }_DebugInfo;
 };

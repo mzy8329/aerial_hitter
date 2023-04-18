@@ -49,6 +49,16 @@ UAV_sim::UAV_sim(ros::NodeHandle nh, double ctrl_freq, double UAV_vel)
     }
 
     _Predict.trajPredict.init(_Predict.fit_len, _Predict.check_len, _Predict.freeFallCheck_err, _Predict.beta);
+
+    // 创建文件夹 以当前时间命名
+
+    strcpy(_DebugInfo.folder_name, _DebugInfo.origin_folder);
+    std::strcat(_DebugInfo.folder_name, common_tools::getTimenow());
+    mkdir(_DebugInfo.folder_name, 0777);
+    _DebugInfo.uav_pose_all.clear();
+    _DebugInfo.ball_pose_all.clear();
+    _DebugInfo.arm_pose_all.clear();
+    
 }
 
 
@@ -60,22 +70,22 @@ void UAV_sim::state_Callback(const mavros_msgs::StateConstPtr &msg)
 void UAV_sim::currentPose_Callback(const geometry_msgs::PoseStampedConstPtr &msg)
 {
     _currentPose = *msg;
+    _DebugInfo.uav_pose_all.push_back(Eigen::Vector4d(_currentPose.pose.position.x,
+                                                        _currentPose.pose.position.y,
+                                                        _currentPose.pose.position.z,
+                                                        _currentPose.header.stamp.toSec()));
 }
 
 void UAV_sim::ballPoseVrpnCallBack(const geometry_msgs::PoseStampedConstPtr &body_msg)
 {
     static int i_1 = 0;
-    static int i_2 = 0;
     Eigen::Vector4d point;
     point << body_msg->pose.position.x, body_msg->pose.position.y, body_msg->pose.position.z, body_msg->header.stamp.toSec();
 
-    if(i_2++ > 3)
-    {
-        _Rviz.mark = rviz_draw::draw(point, _Rviz.colar_pose, "traj_view", i_1++);
-        _rviz_marker_pub.publish(_Rviz.mark);
+    _Rviz.mark = rviz_draw::draw(point, _Rviz.colar_pose, "traj_view", i_1++);
+    _rviz_marker_pub.publish(_Rviz.mark);
 
-        i_2 = 0;
-    }
+    _DebugInfo.ball_pose_all.push_back(point);
     
     _Predict.trajPredict.pushNewPoint(point);
 }
@@ -91,6 +101,9 @@ void UAV_sim::ballPoseGazeboCallBack(const nav_msgs::OdometryConstPtr &body_msg)
     {
         _Rviz.mark = rviz_draw::draw(point, _Rviz.colar_pose, "traj_view", i_1++);
         _rviz_marker_pub.publish(_Rviz.mark);
+
+        _DebugInfo.ball_pose_all.push_back(point);
+
 
         i_2 = 0;
         if(i_1 > 100)
@@ -230,6 +243,11 @@ void UAV_sim::Hover()
     {
         if(_hitingAllow && _Predict.trajPredict.freeFallCheck())
         {
+            char file_name[150] = {""};
+            std::strcpy(file_name, _DebugInfo.folder_name);
+            std::strcat(file_name, _DebugInfo.time_data_name);
+            common_tools::writeFile(file_name, std::to_string(ros::Time::now().toSec())+"--hover2move", file_add);
+
             _mode = move;
         }
     }
@@ -274,7 +292,7 @@ void UAV_sim::Move()
         if((hit_pose_temp-pose_now).norm() < (traj_predict[k][3]-ros::Time::now().toSec())*_UAV_Vel
         && _Predict.trajPredict.predictTraj_hit(k, _point_target)
         && checkSafeBox(traj_predict[k]))
-        {            
+        {
             Eigen::VectorXd hitPoint = _Predict.trajPredict.getPoint_hit();
             if(!isnan(hitPoint[3]) && !isnan(hitPoint[4]) && !isnan(hitPoint[5]))
             {
@@ -352,14 +370,10 @@ void UAV_sim::Move()
                 }
 
                 // 创建文件夹 以当前时间命名
-                std::time_t now_c = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-                std::string time_now(std::ctime(&now_c));
-                std::replace(time_now.begin(), time_now.end(), ':', '-');
-                std::replace(time_now.begin(), time_now.end(), ' ', '-');
-                std::strcpy(_DebugInfo.folder_name, time_now.c_str());
 
-                strcpy(_DebugInfo.file_name, _DebugInfo.origin_folder);
-                std::strcat(_DebugInfo.file_name, _DebugInfo.folder_name);
+                strcpy(_DebugInfo.file_name, _DebugInfo.folder_name);
+                std::strcat(_DebugInfo.file_name, "/");
+                std::strcat(_DebugInfo.file_name, common_tools::getTimenow());
                 mkdir(_DebugInfo.file_name, 0777);
                 _DebugInfo.uav_traj.clear();
                 _DebugInfo.arm_traj.clear();
@@ -387,15 +401,24 @@ void UAV_sim::Move()
                 common_tools::writeFile(file_name, _Arm.arm_pos_target[1], file_new);
 
                 std::strcpy(file_name, _DebugInfo.file_name);
-                std::strcat(file_name, _DebugInfo.hit_data);
+                std::strcat(file_name, _DebugInfo.hit_data_name);
                 common_tools::writeFile(file_name, _base_pose, file_add);
                 common_tools::writeFile(file_name, _hit_pose, file_add);
+
+                std::strcpy(file_name, _DebugInfo.folder_name);
+                std::strcat(file_name, _DebugInfo.time_data_name);
+                common_tools::writeFile(file_name, std::to_string(ros::Time::now().toSec())+"--move2hit", file_add);
 
                 _mode = hit;
             }            
         }
         else
         {
+            char file_name[150] = {""};
+            std::strcpy(file_name, _DebugInfo.folder_name);
+            std::strcat(file_name, _DebugInfo.time_data_name);
+            common_tools::writeFile(file_name, std::to_string(ros::Time::now().toSec())+"--can't hit", file_add);
+
             // 规划无人机轨迹
             for(int i = 0; i < 3; i++)
             {
@@ -434,7 +457,6 @@ void UAV_sim::Move()
                 _targetTraj_xyz[i] = common_tools::triangleProfile(pt_s, pt_e, _move_ctrl_ratio/_ctrl_rate);
             }
         }
-
 
     }
 
@@ -487,6 +509,12 @@ void UAV_sim::Move()
         if(ros::Time::now().toSec()-_hit_pose_temp[3]>1)
         {
             _hitingAllow = false;
+
+            char file_name[150] = {""};
+            std::strcpy(file_name, _DebugInfo.folder_name);
+            std::strcat(file_name, _DebugInfo.time_data_name);
+            common_tools::writeFile(file_name, std::to_string(ros::Time::now().toSec())+"--move2hover", file_add);
+
             _mode = hover;
         }
     }
@@ -499,15 +527,10 @@ void UAV_sim::Hit()
                                                   _currentPose.pose.position.y,
                                                   _currentPose.pose.position.z,
                                                   ros::Time::now().toSec()));
-    if(ros::Time::now().toSec()>_Arm.arm_pos_target[0][0][2])
+    if(ros::Time::now().toSec()>_Arm.arm_pos_target[0][0][2]-_Arm.time_ff)
     {
         _DebugInfo.arm_traj.push_back(Eigen::Vector3d(_Arm.Arm._arm_current_pos[0]+_Arm.arm_offset[0], _Arm.Arm._arm_current_pos[1]+_Arm.arm_offset[1], ros::Time::now().toSec()));
     }
-
-    // Eigen::Vector3d base_pose = Eigen::Vector3d(_currentPose.pose.position.x,
-    //                                             _currentPose.pose.position.y,
-    //                                             _currentPose.pose.position.z);
-
 
     if(!_targetTraj_xyz[0].empty()
     && checkSafeBox(Eigen::Vector3d(_targetTraj_xyz[0][0][0], _targetTraj_xyz[1][0][0], _targetTraj_xyz[2][0][0])))
@@ -574,7 +597,7 @@ void UAV_sim::Hit()
     double time_now = ros::Time::now().toSec();
     // std::cout<< time_now <<"  " <<_arm_pos_targetca[0][0][2] <<"  " << _arm_pos_target[0].size() <<  std::endl;
     
-    if(time_now - _Arm.arm_pos_target[0][0][2] > 1.0/_ctrl_rate)
+    if(time_now - _Arm.arm_pos_target[0][0][2] > 1.0/_ctrl_rate - _Arm.time_ff)
     {
 
         hit_start = true;
@@ -624,6 +647,9 @@ void UAV_sim::Hit()
             std::strcat(file_name, _DebugInfo.arm_traj_name);
             common_tools::writeFile(file_name, _DebugInfo.arm_traj, file_new);
 
+            std::strcpy(file_name, _DebugInfo.folder_name);
+            std::strcat(file_name, _DebugInfo.time_data_name);
+            common_tools::writeFile(file_name, std::to_string(ros::Time::now().toSec())+"--hit2hover", file_add);
 
             _mode = hover;
         }
@@ -750,6 +776,8 @@ void UAV_sim::mainLoop()
     int i = 0;
     while(ros::ok())
     {
+        _DebugInfo.arm_pose_all.push_back(Eigen::Vector3d(_Arm.Arm._arm_current_pos[0]+_Arm.arm_offset[0], _Arm.Arm._arm_current_pos[1]+_Arm.arm_offset[1], ros::Time::now().toSec()));
+
         switch (_mode)
         {
         case wait:
@@ -779,9 +807,25 @@ void UAV_sim::mainLoop()
             break;
         }
 
-        if(i++ > 50)
+        if(i++ > 100)
         {
             printData();
+            char file_name[150] = {""};
+            std::strcpy(file_name, _DebugInfo.folder_name);
+            std::strcat(file_name, _DebugInfo.uav_pose_all_name);
+            common_tools::writeFile(file_name, _DebugInfo.uav_pose_all, file_add);
+            _DebugInfo.uav_pose_all.clear();
+
+            std::strcpy(file_name, _DebugInfo.folder_name);
+            std::strcat(file_name, _DebugInfo.ball_pose_all_name);
+            common_tools::writeFile(file_name, _DebugInfo.ball_pose_all, file_add);
+            _DebugInfo.ball_pose_all.clear();
+
+            std::strcpy(file_name, _DebugInfo.folder_name);
+            std::strcat(file_name, _DebugInfo.arm_pose_all_name);
+            common_tools::writeFile(file_name, _DebugInfo.arm_pose_all, file_add);
+            _DebugInfo.arm_pose_all.clear();
+                
             i = 0;
         }
 

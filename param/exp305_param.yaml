@@ -1,6 +1,6 @@
-traj_prediction/fit_len: 50
-traj_prediction/check_len: 50
-traj_prediction/fitKd_len: 50
+traj_prediction/fit_len: 45
+traj_prediction/check_len: 45
+traj_prediction/fitKd_len: 45
 traj_prediction/freeFallCheck_err: 0.8
 traj_prediction/pre_time: 2.0
 traj_prediction/pre_size: 16
@@ -21,7 +21,7 @@ target_pt/x: 1.0
 target_pt/y: 0.2 
 target_pt/z: 0
 
-ctrl/arm_ratio: 1.0
+ctrl/arm_ratio: 0.5
 ctrl/move_ratio: 1.0
 ctrl/hit_ratio: 1.0
 ctrl/vel_ratio: 1.5
