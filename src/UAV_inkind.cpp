@@ -54,6 +54,8 @@ UAV_inkind::UAV_inkind(ros::NodeHandle nh, double ctrl_freq, double UAV_vel)
 
     _Predict.trajPredict.init(_Predict.fit_len, _Predict.check_len, _Predict.freeFallCheck_err, _Predict.beta);
 
+    ros_time_begin = ros::Time::now().toSec();
+
     strcpy(_DebugInfo.folder_name, _DebugInfo.origin_folder);
     std::strcat(_DebugInfo.folder_name, common_tools::getTimenow());
     mkdir(_DebugInfo.folder_name, 0777);
@@ -74,7 +76,7 @@ void UAV_inkind::currentPose_Callback(const geometry_msgs::PoseStampedConstPtr &
     _DebugInfo.uav_pose_all.push_back(Eigen::Vector4d(_currentPose.pose.position.x,
                                                         _currentPose.pose.position.y,
                                                         _currentPose.pose.position.z,
-                                                        _currentPose.header.stamp.toSec()));
+                                                        _currentPose.header.stamp.toSec()-ros_time_begin));
 }
 
 void UAV_inkind::targetPose_Callback(const trajectory_msgs::MultiDOFJointTrajectoryConstPtr &msg)
@@ -86,7 +88,7 @@ void UAV_inkind::ballPoseVrpnCallBack(const geometry_msgs::PoseStampedConstPtr &
 {
     // static int i_1 = 0;
     Eigen::Vector4d point;
-    point << body_msg->pose.position.x, body_msg->pose.position.y, body_msg->pose.position.z, body_msg->header.stamp.toSec();
+    point << body_msg->pose.position.x, body_msg->pose.position.y, body_msg->pose.position.z, body_msg->header.stamp.toSec()-ros_time_begin;
     
     _DebugInfo.ball_pose_all.push_back(point);
     // _Rviz.mark = rviz_draw::draw(point, _Rviz.colar_pose, "traj_view", i_1++);
@@ -231,7 +233,7 @@ void UAV_inkind::Hover()
             char file_name[150] = {""};
             std::strcpy(file_name, _DebugInfo.folder_name);
             std::strcat(file_name, _DebugInfo.time_data_name);
-            common_tools::writeFile(file_name, std::to_string(ros::Time::now().toSec())+"--hover2move", file_add);
+            common_tools::writeFile(file_name, std::to_string(ros::Time::now().toSec()-ros_time_begin)+"--hover2move", file_add);
 
             _mode = move;
         }
@@ -392,7 +394,7 @@ void UAV_inkind::Move()
 
                 std::strcpy(file_name, _DebugInfo.folder_name);
                 std::strcat(file_name, _DebugInfo.time_data_name);
-                common_tools::writeFile(file_name, std::to_string(ros::Time::now().toSec())+"--move2hit", file_add);
+                common_tools::writeFile(file_name, std::to_string(ros::Time::now().toSec()-ros_time_begin)+"--move2hit", file_add);
 
 
                 _mode = hit;
@@ -403,7 +405,7 @@ void UAV_inkind::Move()
             char file_name[150] = {""};
             std::strcpy(file_name, _DebugInfo.folder_name);
             std::strcat(file_name, _DebugInfo.time_data_name);
-            common_tools::writeFile(file_name, std::to_string(ros::Time::now().toSec())+"--can't hit", file_add);
+            common_tools::writeFile(file_name, std::to_string(ros::Time::now().toSec()-ros_time_begin)+"--can't hit", file_add);
 
             // 规划无人机轨迹
             for(int i = 0; i < 3; i++)
@@ -502,7 +504,7 @@ void UAV_inkind::Move()
             char file_name[150] = {""};
             std::strcpy(file_name, _DebugInfo.folder_name);
             std::strcat(file_name, _DebugInfo.time_data_name);
-            common_tools::writeFile(file_name, std::to_string(ros::Time::now().toSec())+"--move2hover", file_add);
+            common_tools::writeFile(file_name, std::to_string(ros::Time::now().toSec()-ros_time_begin)+"--move2hover", file_add);
 
             _mode = hover;
         }
@@ -515,10 +517,10 @@ void UAV_inkind::Hit()
     _DebugInfo.uav_traj.push_back(Eigen::Vector4d(_currentPose.pose.position.x,
                                                   _currentPose.pose.position.y,
                                                   _currentPose.pose.position.z,
-                                                  ros::Time::now().toSec()));
+                                                  ros::Time::now().toSec()-ros_time_begin));
     if(ros::Time::now().toSec()>_Arm.arm_pos_target[0][0][2])
     {
-        _DebugInfo.arm_traj.push_back(Eigen::Vector3d(_Arm.Arm._motor[0].angle_fdb/_Arm.arm_resolution[0]*0.0174+_Arm.arm_offset[0], _Arm.Arm._motor[1].angle_fdb/_Arm.arm_resolution[1]*0.0174+_Arm.arm_offset[1], ros::Time::now().toSec()));
+        _DebugInfo.arm_traj.push_back(Eigen::Vector3d(_Arm.Arm._motor[0].angle_fdb/_Arm.arm_resolution[0]*0.0174+_Arm.arm_offset[0], _Arm.Arm._motor[1].angle_fdb/_Arm.arm_resolution[1]*0.0174+_Arm.arm_offset[1], ros::Time::now().toSec()-ros_time_begin));
     }
 
     if(!_targetTraj_xyz[0].empty()
@@ -641,7 +643,7 @@ void UAV_inkind::Hit()
             
             std::strcpy(file_name, _DebugInfo.folder_name);
             std::strcat(file_name, _DebugInfo.time_data_name);
-            common_tools::writeFile(file_name, std::to_string(ros::Time::now().toSec())+"--hit2hover", file_add);
+            common_tools::writeFile(file_name, std::to_string(ros::Time::now().toSec()-ros_time_begin)+"--hit2hover", file_add);
 
             _mode = hover;
         }
@@ -774,7 +776,7 @@ void UAV_inkind::mainLoop()
     int i = 0;
     while(ros::ok())
     {
-        _DebugInfo.arm_traj.push_back(Eigen::Vector3d(_Arm.Arm._motor[0].angle_fdb/_Arm.arm_resolution[0]*0.0174+_Arm.arm_offset[0], _Arm.Arm._motor[1].angle_fdb/_Arm.arm_resolution[1]*0.0174+_Arm.arm_offset[1], ros::Time::now().toSec()));
+        _DebugInfo.arm_traj.push_back(Eigen::Vector3d(_Arm.Arm._motor[0].angle_fdb/_Arm.arm_resolution[0]*0.0174+_Arm.arm_offset[0], _Arm.Arm._motor[1].angle_fdb/_Arm.arm_resolution[1]*0.0174+_Arm.arm_offset[1], ros::Time::now().toSec()-ros_time_begin));
 
         switch (_mode)
         {

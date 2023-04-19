@@ -25,8 +25,9 @@ arm_traj_1 = []
 
 
 if __name__ == "__main__":
-    dirs = os.listdir(origin_path)
-    for dir in dirs:
+        dir = "Wed-Apr-19-16-17-48-2023/Wed-Apr-19-16-17-48-2023"
+    # dirs = os.listdir(origin_path)
+    # for dir in dirs:
         files = os.listdir(origin_path+dir)
         uav_plan_x = []
         uav_plan_y = []

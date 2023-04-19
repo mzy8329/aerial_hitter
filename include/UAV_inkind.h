@@ -108,6 +108,8 @@ private:
     double _UAV_Vel;
     bool _hitingAllow;
 
+    double ros_time_begin;
+
     Eigen::VectorXd _base_pose;
     Eigen::VectorXd _hit_pose;
     Eigen::Vector4d _hit_pose_temp;
@@ -132,7 +134,7 @@ private:
         double arm_resolution[2] = {-2.0, -1.5};
         double arm_hit_pos[2];
         std::vector<Eigen::Vector3d> arm_pos_target[2];
-        double time_ff = 0.25;
+        double time_ff = 0.2;
         bool isSet;
     }_Arm;
 

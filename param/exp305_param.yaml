@@ -21,7 +21,7 @@ target_pt/x: 1.0
 target_pt/y: 0.2 
 target_pt/z: 0
 
-ctrl/arm_ratio: 0.5
+ctrl/arm_ratio: 2.0
 ctrl/move_ratio: 1.0
 ctrl/hit_ratio: 1.0
 ctrl/vel_ratio: 1.5
