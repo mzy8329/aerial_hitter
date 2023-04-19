@@ -527,7 +527,7 @@ void UAV_sim::Hit()
                                                   _currentPose.pose.position.y,
                                                   _currentPose.pose.position.z,
                                                   ros::Time::now().toSec()));
-    if(ros::Time::now().toSec()>_Arm.arm_pos_target[0][0][2]-_Arm.time_ff)
+    if(ros::Time::now().toSec()>_Arm.arm_pos_target[0][0][2])
     {
         _DebugInfo.arm_traj.push_back(Eigen::Vector3d(_Arm.Arm._arm_current_pos[0]+_Arm.arm_offset[0], _Arm.Arm._arm_current_pos[1]+_Arm.arm_offset[1], ros::Time::now().toSec()));
     }
