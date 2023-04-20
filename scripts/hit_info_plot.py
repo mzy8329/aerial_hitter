@@ -1,5 +1,6 @@
 import os
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import time
 import numpy as np
 
@@ -11,38 +12,38 @@ else:
     origin_path  = '/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/exp/'
 
 
-uav_plan_x = []
-uav_plan_y = []
-uav_plan_z = []
-uav_traj_x = []
-uav_traj_y = []
-uav_traj_z = []
-
-arm_plan_0 = []
-arm_plan_1 = []
-arm_traj_0 = []
-arm_traj_1 = []
+sub_dir = "Wed-Apr-19-17-04-42-2023"
 
 
 if __name__ == "__main__":
-        dir = "Wed-Apr-19-16-17-48-2023/Wed-Apr-19-16-17-48-2023"
-    # dirs = os.listdir(origin_path)
-    # for dir in dirs:
-        files = os.listdir(origin_path+dir)
-        uav_plan_x = []
-        uav_plan_y = []
-        uav_plan_z = []
-        uav_traj_x = []
-        uav_traj_y = []
-        uav_traj_z = []
+    dir = origin_path + sub_dir
+    subdirs = os.listdir(dir)
 
-        arm_plan_0 = []
-        arm_plan_1 = []
-        arm_traj_0 = []
-        arm_traj_1 = []
 
-        for file in files:
-            with open(os.path.join(origin_path+dir, file), 'r') as f:
+    subdir_index = -1
+    for i in range(0, len(subdirs)):
+        try:
+            subfiles = os.listdir(dir+"/"+subdirs[i])
+            subdir_index = i
+        except:
+            subdir_index = -1
+        
+    # subfiles = os.listdir(origin_path+dir)
+    uav_plan_x = []
+    uav_plan_y = []
+    uav_plan_z = []
+    uav_traj_x = []
+    uav_traj_y = []
+    uav_traj_z = []
+
+    arm_plan_0 = []
+    arm_plan_1 = []
+    arm_traj_0 = []
+    arm_traj_1 = []
+
+    if subdir_index != -1:
+        for file in subfiles:
+            with open(os.path.join(dir+"/"+subdirs[subdir_index], file), 'r') as f:
                 data_lines = f.read().split('\n')
                 if file == "uav_plan_x.txt":
                     for data_line in data_lines:
@@ -154,3 +155,50 @@ if __name__ == "__main__":
 
         plt.show()
         time.sleep(0)
+
+    uav_pose_all = []
+    ball_pose_all = []
+    arm_pose_all = []
+    for file in subdirs:
+        if subdir_index != -1:
+            if file == subdirs[subdir_index]:
+                continue
+
+        with open(os.path.join(dir, file), 'r') as f:
+            data_lines = f.read().split('\n')
+            if file == "uav_pose_all.txt":
+                for data_line in data_lines:
+                    data = data_line.split("  ")
+                    try:
+                        uav_pose_all.append([float(data[0]), float(data[1]), float(data[2])])
+                    except:
+                        pass
+            elif file == "ball_pose_all.txt":
+                for data_line in data_lines:
+                    data = data_line.split("  ")
+                    try:
+                        ball_pose_all.append([float(data[0]), float(data[1]), float(data[2])])
+                    except:
+                        pass
+            elif file == "arm_pose_all.txt":
+                for data_line in data_lines:
+                    data = data_line.split("  ")
+                    try:
+                        arm_pose_all.append([float(data[0]), float(data[1]), float(data[2])])
+                    except:
+                        pass
+            else:
+                pass
+
+    plt.figure()
+    uav_array = np.array(uav_pose_all)
+    ball_array = np.array(ball_pose_all)
+
+    ax = plt.axes(projection='3d')
+    ax.scatter(uav_array[:, 0], uav_array[:, 1], uav_array[:, 2],
+               color=(0., 0., 1., 0.2), label="robot")
+    ax.scatter(ball_array[:, 0], ball_array[:, 1],
+               ball_array[:, 2], color=(1, 0., 0, 1.))
+    ax.legend()
+    plt.grid()
+    plt.show()

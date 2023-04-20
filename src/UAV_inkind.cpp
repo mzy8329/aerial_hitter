@@ -776,7 +776,7 @@ void UAV_inkind::mainLoop()
     int i = 0;
     while(ros::ok())
     {
-        _DebugInfo.arm_traj.push_back(Eigen::Vector3d(_Arm.Arm._motor[0].angle_fdb/_Arm.arm_resolution[0]*0.0174+_Arm.arm_offset[0], _Arm.Arm._motor[1].angle_fdb/_Arm.arm_resolution[1]*0.0174+_Arm.arm_offset[1], ros::Time::now().toSec()-ros_time_begin));
+        _DebugInfo.arm_pose_all.push_back(Eigen::Vector3d(_Arm.Arm._motor[0].angle_fdb/_Arm.arm_resolution[0]*0.0174+_Arm.arm_offset[0], _Arm.Arm._motor[1].angle_fdb/_Arm.arm_resolution[1]*0.0174+_Arm.arm_offset[1], ros::Time::now().toSec()-ros_time_begin));
 
         switch (_mode)
         {
