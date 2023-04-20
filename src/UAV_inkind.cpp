@@ -88,13 +88,15 @@ void UAV_inkind::ballPoseVrpnCallBack(const geometry_msgs::PoseStampedConstPtr &
 {
     // static int i_1 = 0;
     Eigen::Vector4d point;
-    point << body_msg->pose.position.x, body_msg->pose.position.y, body_msg->pose.position.z, body_msg->header.stamp.toSec()-ros_time_begin;
+    point << body_msg->pose.position.x, body_msg->pose.position.y, body_msg->pose.position.z, body_msg->header.stamp.toSec();
     
-    _DebugInfo.ball_pose_all.push_back(point);
     // _Rviz.mark = rviz_draw::draw(point, _Rviz.colar_pose, "traj_view", i_1++);
     // _rviz_marker_pub.publish(_Rviz.mark);
     
     _Predict.trajPredict.pushNewPoint(point);
+
+    point = {body_msg->pose.position.x, body_msg->pose.position.y, body_msg->pose.position.z, body_msg->header.stamp.toSec()-ros_time_begin};
+    _DebugInfo.ball_pose_all.push_back(point);
 }
 
 bool UAV_inkind::hitingAllow_Callback(std_srvs::SetBool::Request &req, std_srvs::SetBool::Response &res)

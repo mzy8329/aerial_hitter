@@ -12,13 +12,12 @@ else:
     origin_path  = '/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/exp/'
 
 
-sub_dir = "Wed-Apr-19-17-04-42-2023"
+sub_dir = "Wed-Apr-19-16-17-48-2023"
 
 
 if __name__ == "__main__":
     dir = origin_path + sub_dir
     subdirs = os.listdir(dir)
-
 
     subdir_index = -1
     for i in range(0, len(subdirs)):
