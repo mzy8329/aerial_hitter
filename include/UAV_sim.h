@@ -26,6 +26,8 @@
 #include "rviz_draw.h"
 
 
+#define RECORD 0
+
 typedef enum{
     wait,
     take_off,
@@ -66,6 +68,7 @@ public:
     T pt2SafeBox(T pt);
     template<typename T>
     bool checkSafeBox(T pt);
+    bool writeResult(Eigen::Vector3d resultPt);
     
 
     void mainLoop();
@@ -162,6 +165,7 @@ private:
     }_SafeBox;
 
 
+#if RECORD
     struct
     {
         /* data */
@@ -197,6 +201,13 @@ private:
 
 
     }_DebugInfo;
+#endif
+
+    struct
+    {
+       const char* hit_result_name = "/home/mzy/Code/workSpace/UAV_Hitter_ws/src/aerial_hitter/data/sim/result-2.0-0-0.05--0.032-0-0.115.txt";
+    }_hitResult;
+    
     
 };
 

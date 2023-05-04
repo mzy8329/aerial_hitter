@@ -323,4 +323,44 @@ namespace common_tools
 		outfile.close();
 	}
 
+    void writeFile(char* name, std::string data, fWrite_mode_e mode, bool enter)
+    {//写入文件
+        std::ofstream outfile;      //创建文件
+        if(mode == file_new)
+        {
+            outfile.open(name,  std::ios::binary);
+        }
+        else
+        {
+            outfile.open(name,  std::ios::app|std::ios::binary);
+        }
+
+        outfile << data << "  ";
+        if(enter)
+        {
+            outfile << std::endl;
+        }
+		outfile.close();
+	}
+
+    void writeFile(char* name, Eigen::Vector3d data, fWrite_mode_e mode, bool enter)
+    {//写入文件
+        std::ofstream outfile;      //创建文件
+        if(mode == file_new)
+        {
+            outfile.open(name,  std::ios::binary);
+        }
+        else
+        {
+            outfile.open(name,  std::ios::app|std::ios::binary);
+        }
+
+        outfile << data[0] << " " << data[1] << " " << data[2] << "  ";
+        if(enter)
+        {
+            outfile << std::endl;
+        }
+		outfile.close();
+	}
+
 } // namespace common_tools

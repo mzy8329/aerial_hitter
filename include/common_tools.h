@@ -38,6 +38,9 @@ namespace common_tools
     void writeFile(char* name, std::vector<Eigen::Vector4d> data, fWrite_mode_e mode);
     void writeFile(char* name, Eigen::VectorXd data, fWrite_mode_e mode);
     void writeFile(char* name, std::string data, fWrite_mode_e mode);
+    void writeFile(char* name, std::string data, fWrite_mode_e mode, bool enter);
+    void writeFile(char* name, Eigen::Vector3d data, fWrite_mode_e mode, bool enter);
+
 
 
 

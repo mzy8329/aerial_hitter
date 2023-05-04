@@ -13,6 +13,7 @@ else:
 
 
 sub_dir = "Wed-Apr-19-16-17-48-2023"
+# sub_dir = "Thu-Apr-20-16-25-24-2023"
 
 
 if __name__ == "__main__":
@@ -24,6 +25,7 @@ if __name__ == "__main__":
         try:
             subfiles = os.listdir(dir+"/"+subdirs[i])
             subdir_index = i
+            break
         except:
             subdir_index = -1
         
@@ -194,10 +196,12 @@ if __name__ == "__main__":
     ball_array = np.array(ball_pose_all)
 
     ax = plt.axes(projection='3d')
-    ax.scatter(uav_array[:, 0], uav_array[:, 1], uav_array[:, 2],
+    begin = 0  
+    end = 1200
+    ax.scatter(uav_array[begin:end, 0], uav_array[begin:end, 1], uav_array[begin:end, 2],
                color=(0., 0., 1., 0.2), label="robot")
-    ax.scatter(ball_array[:, 0], ball_array[:, 1],
-               ball_array[:, 2], color=(1, 0., 0, 1.))
+    ax.scatter(ball_array[begin:end, 0], ball_array[begin:end, 1], ball_array[begin:end, 2], 
+               color=(1, 0., 0, 1.), label="ball")
     ax.legend()
     plt.grid()
     plt.show()
